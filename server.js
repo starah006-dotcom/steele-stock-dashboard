@@ -1,6 +1,5 @@
 const express = require('express');
 const fetch = require('node-fetch');
-const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -27,24 +26,29 @@ app.get('/api/stock/:symbol', async (req, res) => {
   try {
     const symbol = req.params.symbol.toLowerCase();
     
-    const [info, dividendRate, dividendYield, articles] = await Promise.all([
+    const [info, dividendRate, dividendScorecard, articles, transcripts, pressReleases] = await Promise.all([
       fetchSA('/v1/symbols/data', { ticker_slug: symbol }),
       fetchSA('/v1/symbols/metrics', { ticker_slug: symbol, category: 'dividend_rate' }),
-      fetchSA('/v1/symbols/metrics', { ticker_slug: symbol, category: 'dividend_yield_category' }),
-      fetchSA('/v1/symbols/analysis', { ticker_slug: symbol, page_number: 1 })
+      fetchSA('/v1/symbols/metrics', { ticker_slug: symbol, category: 'dividend_scorecard' }),
+      fetchSA('/v1/symbols/analysis', { ticker_slug: symbol, page_number: 1 }),
+      fetchSA('/v1/symbols/transcripts', { ticker_slug: symbol, page_number: 1, size: 5 }),
+      fetchSA('/v1/symbols/press-releases', { ticker_slug: symbol, page_number: 1, size: 5 })
     ]);
     
     res.json({
       info: info.data,
       dividendRate: dividendRate.data?.[0]?.attributes?.value,
-      dividendYield: dividendYield.data?.[0]?.attributes?.value,
-      articles: articles.data?.slice(0, 5) || []
+      dividendScorecard: dividendScorecard.data,
+      articles: articles.data?.slice(0, 5) || [],
+      transcripts: transcripts.data?.slice(0, 3) || [],
+      pressReleases: pressReleases.data?.slice(0, 5) || []
     });
   } catch (err) {
+    console.error('API Error:', err);
     res.status(500).json({ error: err.message });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Steele Stock Dashboard running on port ${PORT}`);
 });
