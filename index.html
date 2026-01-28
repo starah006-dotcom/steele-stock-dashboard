@@ -20,11 +20,7 @@
       justify-content: space-between;
       align-items: center;
     }
-    .header h1 { 
-      font-size: 24px; 
-      font-weight: 600;
-      color: #fff;
-    }
+    .header h1 { font-size: 24px; font-weight: 600; color: #fff; }
     .header .subtitle { color: #888; font-size: 14px; margin-top: 4px; }
     .last-updated { color: #666; font-size: 12px; }
     
@@ -47,11 +43,7 @@
       transition: all 0.2s;
     }
     .tab:hover { background: #1a1a3e; color: #fff; }
-    .tab.active { 
-      background: #2563eb; 
-      border-color: #2563eb; 
-      color: #fff; 
-    }
+    .tab.active { background: #2563eb; border-color: #2563eb; color: #fff; }
     
     .main { padding: 30px; }
     
@@ -67,9 +59,7 @@
     .stock-info .company-name { color: #888; font-size: 16px; margin-top: 4px; }
     .price-display { text-align: right; }
     .price { font-size: 42px; font-weight: 700; color: #10b981; }
-    .price.down { color: #ef4444; }
     .price-change { font-size: 18px; color: #10b981; margin-top: 4px; }
-    .price-change.down { color: #ef4444; }
     
     .grid { 
       display: grid; 
@@ -101,17 +91,8 @@
       grid-template-columns: repeat(2, 1fr);
       gap: 16px;
     }
-    .dividend-item label { 
-      font-size: 12px; 
-      color: #666; 
-      display: block; 
-      margin-bottom: 4px; 
-    }
-    .dividend-item .value { 
-      font-size: 20px; 
-      font-weight: 600; 
-      color: #fff; 
-    }
+    .dividend-item label { font-size: 12px; color: #666; display: block; margin-bottom: 4px; }
+    .dividend-item .value { font-size: 20px; font-weight: 600; color: #fff; }
     .dividend-item .value.highlight { color: #10b981; }
     .dividend-item .value.warning { color: #f59e0b; }
     
@@ -127,46 +108,21 @@
       color: #fff; 
       line-height: 1.4;
       cursor: pointer;
+      text-decoration: none;
+      display: block;
     }
     .news-item .title:hover { color: #60a5fa; }
-    .news-item .source { font-size: 12px; color: #888; margin-top: 6px; }
-    .news-item .sentiment {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 600;
-      margin-left: 8px;
-    }
-    .news-item .sentiment.bullish { background: #064e3b; color: #10b981; }
-    .news-item .sentiment.bearish { background: #7f1d1d; color: #ef4444; }
-    .news-item .sentiment.neutral { background: #3a3a5a; color: #888; }
     
-    .earnings-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 0;
-      border-bottom: 1px solid #2a2a4a;
+    .loading { 
+      color: #888; 
+      font-style: italic; 
+      padding: 20px;
+      text-align: center;
     }
-    .earnings-item:last-child { border-bottom: none; }
-    .earnings-item .label { color: #888; }
-    .earnings-item .value { color: #fff; font-weight: 500; }
-    
-    .transcript-summary {
-      background: #12122a;
-      border-radius: 8px;
-      padding: 16px;
-      margin-top: 16px;
-      font-size: 14px;
-      line-height: 1.6;
-      color: #ccc;
-    }
-    .transcript-summary strong { color: #fff; }
     
     .alert-banner {
-      background: linear-gradient(135deg, #7f1d1d 0%, #450a0a 100%);
-      border: 1px solid #ef4444;
+      background: linear-gradient(135deg, #1e3a5f 0%, #0c1929 100%);
+      border: 1px solid #2563eb;
       border-radius: 8px;
       padding: 16px 20px;
       margin-bottom: 20px;
@@ -174,29 +130,15 @@
       align-items: center;
       gap: 12px;
     }
-    .alert-banner.info {
-      background: linear-gradient(135deg, #1e3a5f 0%, #0c1929 100%);
-      border-color: #2563eb;
-    }
     .alert-banner .icon { font-size: 24px; }
     .alert-banner .text { flex: 1; }
     .alert-banner .title { font-weight: 600; color: #fff; }
     .alert-banner .desc { font-size: 13px; color: #ccc; margin-top: 2px; }
-    
-    .quick-stats {
-      display: flex;
-      gap: 30px;
-      flex-wrap: wrap;
-      margin-top: 16px;
-    }
-    .stat-item label { font-size: 12px; color: #666; display: block; }
-    .stat-item .value { font-size: 16px; color: #fff; font-weight: 500; }
-    
+
     @media (max-width: 768px) {
       .header { flex-direction: column; align-items: flex-start; gap: 10px; }
       .stock-header { flex-direction: column; }
       .price-display { text-align: left; }
-      .tabs { padding: 10px 15px; }
       .main { padding: 15px; }
     }
   </style>
@@ -205,22 +147,21 @@
   <div class="header">
     <div>
       <h1>📊 Steele Family Portfolio</h1>
-      <div class="subtitle">Real-time stock tracking & analysis</div>
+      <div class="subtitle">Real-time stock tracking & analysis via Seeking Alpha</div>
     </div>
-    <div class="last-updated">Last updated: <span id="update-time">Jan 28, 2026 8:30 AM ET</span></div>
+    <div class="last-updated">Last updated: <span id="update-time">Loading...</span></div>
   </div>
   
   <div class="tabs">
-    <div class="tab active">🎯 Dad's Portfolio</div>
-    <div class="tab">⭐ Star</div>
-    <div class="tab">🚀 Jet</div>
-    <div class="tab">💎 Jacqueline</div>
-    <div class="tab">👨‍👩‍👧‍👦 All Portfolios</div>
-    <div class="tab">⚙️ Settings</div>
+    <div class="tab active" data-tab="dad">🎯 Dad's Portfolio</div>
+    <div class="tab" data-tab="star">⭐ Star</div>
+    <div class="tab" data-tab="jet">🚀 Jet</div>
+    <div class="tab" data-tab="jacqueline">💎 Jacqueline</div>
+    <div class="tab" data-tab="all">👨‍👩‍👧‍👦 All Portfolios</div>
   </div>
   
   <div class="main">
-    <div class="alert-banner info">
+    <div class="alert-banner">
       <div class="icon">📅</div>
       <div class="text">
         <div class="title">Upcoming: ET Ex-Dividend Date</div>
@@ -230,26 +171,68 @@
     
     <div class="stock-header">
       <div class="stock-info">
-        <h2>ET - Energy Transfer LP</h2>
-        <div class="company-name">Midstream Energy · NYSE · 54,000 shares held</div>
+        <h2 id="stock-name">Loading...</h2>
+        <div class="company-name" id="company-name">Loading stock data...</div>
       </div>
       <div class="price-display">
-        <div class="price">$19.47</div>
-        <div class="price-change">+$0.32 (+1.67%) today</div>
+        <div class="price" id="stock-price">--</div>
+        <div class="price-change" id="price-change">Loading...</div>
       </div>
     </div>
     
     <div class="grid">
       <div class="card">
         <h3><span class="icon">💰</span> Dividend Information</h3>
-        <div class="dividend-grid">
+        <div class="dividend-grid" id="dividend-info">
+          <div class="loading">Loading dividend data...</div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <h3><span class="icon">📰</span> Recent Analysis</h3>
+        <div class="news-list" id="articles-list">
+          <div class="loading">Loading articles...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SHARES_HELD = 54000; // Dad's ET shares
+    
+    async function loadStockData(symbol = 'et') {
+      try {
+        const res = await fetch(`/api/stock/${symbol}`);
+        const data = await res.json();
+        
+        // Update header
+        document.getElementById('stock-name').textContent = 
+          `${data.info?.attributes?.name || symbol.toUpperCase()} - ${data.info?.attributes?.companyName || ''}`;
+        document.getElementById('company-name').textContent = 
+          `${data.info?.attributes?.exchange || ''} · ${SHARES_HELD.toLocaleString()} shares held`;
+        
+        // Update time
+        document.getElementById('update-time').textContent = 
+          new Date().toLocaleString('en-US', { 
+            month: 'short', day: 'numeric', year: 'numeric', 
+            hour: 'numeric', minute: '2-digit', timeZoneName: 'short' 
+          });
+        
+        // Update dividend info
+        const divRate = data.dividendRate || 1.33;
+        const divYield = data.dividendYield || 7.32;
+        const quarterlyDiv = divRate / 4;
+        const quarterlyPayment = quarterlyDiv * SHARES_HELD;
+        const annualPayment = divRate * SHARES_HELD;
+        
+        document.getElementById('dividend-info').innerHTML = `
           <div class="dividend-item">
-            <label>Quarterly Dividend</label>
-            <div class="value highlight">$0.3225</div>
+            <label>Annual Dividend Rate</label>
+            <div class="value highlight">$${divRate.toFixed(2)}</div>
           </div>
           <div class="dividend-item">
-            <label>Annual Yield</label>
-            <div class="value highlight">6.63%</div>
+            <label>Dividend Yield</label>
+            <div class="value highlight">${divYield.toFixed(2)}%</div>
           </div>
           <div class="dividend-item">
             <label>Ex-Dividend Date</label>
@@ -261,154 +244,46 @@
           </div>
           <div class="dividend-item">
             <label>Your Quarterly Payment</label>
-            <div class="value highlight">$17,415</div>
+            <div class="value highlight">$${quarterlyPayment.toLocaleString()}</div>
           </div>
           <div class="dividend-item">
-            <label>Annual Income</label>
-            <div class="value highlight">$69,660</div>
+            <label>Your Annual Income</label>
+            <div class="value highlight">$${annualPayment.toLocaleString()}</div>
           </div>
-        </div>
-        <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #2a2a4a;">
-          <div style="font-size: 13px; color: #888;">
-            <strong style="color: #10b981;">↑ +$0.01/share</strong> from previous quarter
-          </div>
-          <div style="font-size: 12px; color: #666; margin-top: 4px;">
-            Consecutive dividend increases: 12 quarters
-          </div>
-        </div>
-      </div>
-      
-      <div class="card">
-        <h3><span class="icon">📰</span> Recent News & Analysis</h3>
-        <div class="news-list">
-          <div class="news-item">
-            <div class="date">Jan 27, 2026 · 4:30 PM</div>
-            <div class="title">Energy Transfer Reports Strong Q4 Volumes, Raises 2026 Guidance</div>
-            <div class="source">Seeking Alpha <span class="sentiment bullish">Bullish</span></div>
-          </div>
-          <div class="news-item">
-            <div class="date">Jan 26, 2026 · 11:15 AM</div>
-            <div class="title">Midstream Sector Outlook: Why ET Remains a Top Pick for Income Investors</div>
-            <div class="source">Seeking Alpha <span class="sentiment bullish">Bullish</span></div>
-          </div>
-          <div class="news-item">
-            <div class="date">Jan 24, 2026 · 2:00 PM</div>
-            <div class="title">ET Announces Completion of Gulf Coast Expansion Project</div>
-            <div class="source">Press Release <span class="sentiment neutral">Neutral</span></div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="card">
-        <h3><span class="icon">📊</span> Earnings & Calls</h3>
-        <div class="earnings-item">
-          <span class="label">Next Earnings Call</span>
-          <span class="value" style="color: #f59e0b;">Feb 19, 2026</span>
-        </div>
-        <div class="earnings-item">
-          <span class="label">Last Earnings</span>
-          <span class="value">Nov 6, 2025</span>
-        </div>
-        <div class="earnings-item">
-          <span class="label">EPS (Last Quarter)</span>
-          <span class="value">$0.38 (beat by $0.03)</span>
-        </div>
-        <div class="earnings-item">
-          <span class="label">Revenue (Last Quarter)</span>
-          <span class="value">$20.8B</span>
-        </div>
+        `;
         
-        <div class="transcript-summary">
-          <strong>Q3 2025 Call Highlights:</strong><br><br>
-          • CEO emphasized continued demand growth in Permian Basin<br>
-          • CFO confirmed commitment to dividend growth policy<br>
-          • <strong>Q&A Notable:</strong> Management addressed debt reduction ahead of schedule, targeting 4.0x leverage by 2026<br>
-          • Analyst pressed on M&A appetite — "disciplined approach" maintained
-        </div>
-      </div>
-      
-      <div class="card">
-        <h3><span class="icon">📈</span> Analyst Ratings</h3>
-        <div class="earnings-item">
-          <span class="label">Consensus Rating</span>
-          <span class="value" style="color: #10b981;">Strong Buy</span>
-        </div>
-        <div class="earnings-item">
-          <span class="label">Price Target (Avg)</span>
-          <span class="value">$22.50</span>
-        </div>
-        <div class="earnings-item">
-          <span class="label">Price Target Range</span>
-          <span class="value">$18.00 - $26.00</span>
-        </div>
-        <div class="earnings-item">
-          <span class="label">Upside Potential</span>
-          <span class="value" style="color: #10b981;">+15.6%</span>
-        </div>
-        <div class="quick-stats">
-          <div class="stat-item">
-            <label>Buy</label>
-            <div class="value" style="color: #10b981;">12</div>
-          </div>
-          <div class="stat-item">
-            <label>Hold</label>
-            <div class="value" style="color: #f59e0b;">3</div>
-          </div>
-          <div class="stat-item">
-            <label>Sell</label>
-            <div class="value" style="color: #ef4444;">0</div>
-          </div>
-        </div>
-      </div>
-    </div>
+        // Update articles
+        if (data.articles && data.articles.length > 0) {
+          document.getElementById('articles-list').innerHTML = data.articles.map(article => {
+            const date = new Date(article.attributes?.publishOn);
+            const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            return `
+              <div class="news-item">
+                <div class="date">${dateStr}</div>
+                <a class="title" href="https://seekingalpha.com${article.links?.self || ''}" target="_blank">
+                  ${article.attributes?.title || 'Untitled'}
+                </a>
+              </div>
+            `;
+          }).join('');
+        }
+        
+      } catch (err) {
+        console.error('Error loading stock data:', err);
+        document.getElementById('dividend-info').innerHTML = `<div class="loading">Error loading data: ${err.message}</div>`;
+      }
+    }
     
-    <div class="card" style="margin-bottom: 20px;">
-      <h3><span class="icon">📋</span> Recent Press Releases</h3>
-      <div class="news-list">
-        <div class="news-item">
-          <div class="date">Jan 24, 2026</div>
-          <div class="title">Energy Transfer Announces Quarterly Cash Distribution</div>
-          <div class="source">Business Wire</div>
-        </div>
-        <div class="news-item">
-          <div class="date">Jan 15, 2026</div>
-          <div class="title">Energy Transfer Completes Acquisition of WTG Midstream</div>
-          <div class="source">Business Wire</div>
-        </div>
-        <div class="news-item">
-          <div class="date">Jan 8, 2026</div>
-          <div class="title">Energy Transfer to Participate in Goldman Sachs Energy Conference</div>
-          <div class="source">Business Wire</div>
-        </div>
-      </div>
-    </div>
-    
-    <div class="card">
-      <h3><span class="icon">💬</span> Seeking Alpha Community Highlights</h3>
-      <div class="transcript-summary">
-        <strong>Top Discussion Topics (Last 7 Days):</strong><br><br>
-        • <strong>Dividend Safety:</strong> Community consensus remains positive — coverage ratio at 1.9x cited frequently<br>
-        • <strong>Permian Volumes:</strong> Several contributors noting record throughput, debating capacity constraints<br>
-        • <strong>Interest Rate Impact:</strong> Mixed views on 2026 refinancing costs, but most see manageable debt structure<br><br>
-        <em style="color: #888;">Summarized from 127 comments across 4 articles</em>
-      </div>
-    </div>
-  </div>
-  
-  <script>
-    // Update time
-    document.getElementById('update-time').textContent = new Date().toLocaleString('en-US', {
-      month: 'short', day: 'numeric', year: 'numeric', 
-      hour: 'numeric', minute: '2-digit', timeZoneName: 'short'
-    });
-    
-    // Tab switching (demo)
+    // Tab switching
     document.querySelectorAll('.tab').forEach(tab => {
       tab.addEventListener('click', () => {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
       });
     });
+    
+    // Load data on page load
+    loadStockData('et');
   </script>
 </body>
 </html>
