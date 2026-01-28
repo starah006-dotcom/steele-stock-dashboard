@@ -120,43 +120,45 @@ async function fetchFinnhub(endpoint) {
 
 app.use(express.static('.'));
 
-// Stock data endpoint
+// Stock data endpoint - using Finnhub for quotes (Yahoo Finance quota exceeded)
 app.get('/api/stock/:symbol', async (req, res) => {
   try {
     const symbol = req.params.symbol.toUpperCase();
     
-    const [yfQuote, saArticles, saTranscripts, saPressReleases, finnhubNews] = await Promise.all([
-      fetchYF(`/api/v1/markets/stock/quotes?ticker=${symbol}`),
+    const [fhQuote, fhProfile, fhMetrics, saArticles, saTranscripts, saPressReleases, finnhubNews] = await Promise.all([
+      fetchFinnhub(`/quote?symbol=${symbol}`).catch(() => ({})),
+      fetchFinnhub(`/stock/profile2?symbol=${symbol}`).catch(() => ({})),
+      fetchFinnhub(`/stock/metric?symbol=${symbol}&metric=all`).catch(() => ({})),
       fetchSA('/v1/symbols/analysis', { ticker_slug: symbol.toLowerCase(), page_number: 1 }).catch(() => ({})),
       fetchSA('/v1/symbols/transcripts', { ticker_slug: symbol.toLowerCase(), page_number: 1, size: 5 }).catch(() => ({})),
       fetchSA('/v1/symbols/press-releases', { ticker_slug: symbol.toLowerCase(), page_number: 1, size: 5 }).catch(() => ({})),
       fetchFinnhub(`/company-news?symbol=${symbol}&from=${new Date(Date.now() - 7*24*60*60*1000).toISOString().split('T')[0]}&to=${new Date().toISOString().split('T')[0]}`).catch(() => [])
     ]);
     
-    const quote = yfQuote.body?.[0] || {};
+    const metrics = fhMetrics?.metric || {};
     
     res.json({
-      price: quote.regularMarketPrice,
-      change: quote.regularMarketChange,
-      changePercent: quote.regularMarketChangePercent,
-      previousClose: quote.regularMarketPreviousClose,
-      dayHigh: quote.regularMarketDayHigh,
-      dayLow: quote.regularMarketDayLow,
-      volume: quote.regularMarketVolume,
-      marketCap: quote.marketCap,
-      fiftyTwoWeekHigh: quote.fiftyTwoWeekHigh,
-      fiftyTwoWeekLow: quote.fiftyTwoWeekLow,
-      trailingPE: quote.trailingPE,
-      forwardPE: quote.forwardPE,
-      dividendRate: quote.dividendRate,
-      dividendYield: quote.dividendYield,
-      dividendDate: quote.dividendDate ? new Date(quote.dividendDate * 1000).toISOString() : null,
-      exDividendDate: quote.exDividendDate ? new Date(quote.exDividendDate * 1000).toISOString() : null,
-      earningsDate: quote.earningsTimestamp ? new Date(quote.earningsTimestamp * 1000).toISOString() : null,
-      analystRating: quote.averageAnalystRating,
-      name: quote.shortName,
-      longName: quote.longName,
-      exchange: quote.fullExchangeName,
+      price: fhQuote?.c,
+      change: fhQuote?.d,
+      changePercent: fhQuote?.dp,
+      previousClose: fhQuote?.pc,
+      dayHigh: fhQuote?.h,
+      dayLow: fhQuote?.l,
+      volume: null, // Finnhub quote doesn't include volume
+      marketCap: (fhProfile?.marketCapitalization || 0) * 1000000,
+      fiftyTwoWeekHigh: metrics['52WeekHigh'],
+      fiftyTwoWeekLow: metrics['52WeekLow'],
+      trailingPE: metrics.peTTM,
+      forwardPE: metrics.peNTM,
+      dividendRate: metrics.dividendPerShareAnnual,
+      dividendYield: metrics.dividendYieldIndicatedAnnual,
+      dividendDate: null, // Would need separate API call
+      exDividendDate: null, // Would need separate API call
+      earningsDate: null, // Would need separate API call
+      analystRating: metrics.targetMedianPrice ? `Target: $${metrics.targetMedianPrice.toFixed(0)}` : null,
+      name: fhProfile?.name,
+      longName: fhProfile?.name,
+      exchange: fhProfile?.exchange,
       articles: saArticles.data?.slice(0, 5) || [],
       transcripts: saTranscripts.data?.slice(0, 3) || [],
       pressReleases: saPressReleases.data?.slice(0, 5) || [],
@@ -233,6 +235,8 @@ ${stockSummaries}`;
         
         if (claudeData.content?.[0]?.text) {
           summary = claudeData.content[0].text;
+          // Strip markdown code fences if present
+          summary = summary.replace(/^```html?\n?/i, '').replace(/\n?```$/i, '').trim();
           console.log('AI Summary generated via Claude');
         } else if (claudeData.error) {
           console.error('Claude error:', claudeData.error);
@@ -262,6 +266,8 @@ ${stockSummaries}`;
       
       if (openaiData.choices?.[0]?.message?.content) {
         summary = openaiData.choices[0].message.content;
+        // Strip markdown code fences if present
+        summary = summary.replace(/^```html?\n?/i, '').replace(/\n?```$/i, '').trim();
         console.log('AI Summary generated via OpenAI');
       } else if (openaiData.error) {
         console.error('OpenAI error:', openaiData.error);
