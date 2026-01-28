@@ -5,7 +5,7 @@ const app = express();
 const PORT = process.env.PORT || 10000;
 
 // Password protection
-const SITE_PASSWORD = process.env.SITE_PASSWORD || 'SteeleFamily2026!';
+const SITE_PASSWORD = process.env.SITE_PASSWORD || 'Steele813';
 
 const RAPIDAPI_KEY = 'd32c6f4d8amsh19566314d24b4e1p1fe082jsn8cb737a081b1';
 const SA_HOST = 'seeking-alpha-finance.p.rapidapi.com';
