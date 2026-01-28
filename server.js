@@ -11,6 +11,9 @@ const RAPIDAPI_KEY = 'd32c6f4d8amsh19566314d24b4e1p1fe082jsn8cb737a081b1';
 const SA_HOST = 'seeking-alpha-finance.p.rapidapi.com';
 const YF_HOST = 'yahoo-finance15.p.rapidapi.com';
 
+// OpenAI for AI summaries (optional - falls back to basic summary if not set)
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
+
 // Middleware to check auth
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -139,9 +142,12 @@ app.get('/api/stock/:symbol', async (req, res) => {
       marketCap: quote.marketCap,
       fiftyTwoWeekHigh: quote.fiftyTwoWeekHigh,
       fiftyTwoWeekLow: quote.fiftyTwoWeekLow,
+      trailingPE: quote.trailingPE,
+      forwardPE: quote.forwardPE,
       dividendRate: quote.dividendRate,
       dividendYield: quote.dividendYield,
       dividendDate: quote.dividendDate ? new Date(quote.dividendDate * 1000).toISOString() : null,
+      exDividendDate: quote.exDividendDate ? new Date(quote.exDividendDate * 1000).toISOString() : null,
       earningsDate: quote.earningsTimestamp ? new Date(quote.earningsTimestamp * 1000).toISOString() : null,
       analystRating: quote.averageAnalystRating,
       name: quote.shortName,
@@ -157,6 +163,61 @@ app.get('/api/stock/:symbol', async (req, res) => {
   }
 });
 
+// AI Summary endpoint
+app.post('/api/ai-summary', async (req, res) => {
+  try {
+    const { stocks } = req.body;
+    
+    if (!OPENAI_API_KEY) {
+      return res.json({ summary: null }); // Frontend will use fallback
+    }
+    
+    // Build context for AI
+    const stockSummaries = stocks.map(s => {
+      let info = `${s.symbol} (${s.name}): $${s.price?.toFixed(2)}, ${s.changePercent >= 0 ? '+' : ''}${s.changePercent?.toFixed(1)}% today`;
+      if (s.gainPct !== undefined) info += `, ${s.gainPct >= 0 ? '+' : ''}${s.gainPct?.toFixed(0)}% total gain`;
+      if (s.yield) info += `, ${s.yield.toFixed(1)}% yield`;
+      if (s.exDivDays !== null && s.exDivDays >= 0 && s.exDivDays <= 30) info += `, ex-div in ${s.exDivDays} days`;
+      if (s.articles?.length) info += `. Recent headlines: ${s.articles.slice(0, 2).join('; ')}`;
+      if (s.pressReleases?.length) info += `. Press: ${s.pressReleases[0]}`;
+      return info;
+    }).join('\n');
+    
+    const prompt = `You are a concise investment analyst. Analyze this portfolio and provide 3-5 brief insights. Focus on:
+- Any stocks with concerning news (bearish signals)
+- Upcoming ex-dividend dates to watch
+- Notable performers (best/worst)
+- Any actionable observations
+
+Format each insight as a short paragraph. Use simple HTML: wrap stock tickers in <span class="stock-ticker">SYMBOL</span>, bullish observations in <span class="bullish">text</span>, bearish in <span class="bearish">text</span>. Each insight should be wrapped in <div class="stock-insight">...</div>.
+
+Portfolio:
+${stockSummaries}`;
+
+    const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 800,
+        temperature: 0.7
+      })
+    });
+    
+    const data = await openaiRes.json();
+    const summary = data.choices?.[0]?.message?.content || null;
+    
+    res.json({ summary });
+  } catch (err) {
+    console.error('AI Summary Error:', err);
+    res.json({ summary: null });
+  }
+});
+
 app.listen(PORT, () => {
-  console.log(`Steele Stock Dashboard (password protected) running on port ${PORT}`);
+  console.log(`Steele Stock Dashboard running on port ${PORT}`);
 });

@@ -17,33 +17,55 @@
     .tab.active { background: #2563eb; border-color: #2563eb; color: #fff; }
     .tab.parent { border-color: #f59e0b44; }
     .tab.parent.active { background: #f59e0b; border-color: #f59e0b; }
-    .main { padding: 30px; max-width: 1400px; margin: 0 auto; }
+    .main { padding: 30px; max-width: 1600px; margin: 0 auto; }
     
     /* Portfolio Summary */
-    .portfolio-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .portfolio-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 24px; }
     .summary-card { background: #1a1a3e; border-radius: 12px; padding: 18px; border: 1px solid #2a2a4a; }
     .summary-card .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 6px; }
-    .summary-card .value { font-size: 28px; font-weight: 700; color: #fff; }
+    .summary-card .value { font-size: 26px; font-weight: 700; color: #fff; }
     .summary-card .value.up { color: #10b981; }
     .summary-card .value.down { color: #ef4444; }
-    .summary-card .sub { font-size: 13px; color: #888; margin-top: 4px; }
+    .summary-card .sub { font-size: 12px; color: #888; margin-top: 4px; }
     .summary-card .sub.up { color: #10b981; }
     .summary-card .sub.down { color: #ef4444; }
     
     /* Holdings Table */
     .holdings-card { background: #1a1a3e; border-radius: 12px; border: 1px solid #2a2a4a; overflow: hidden; margin-bottom: 24px; }
-    .holdings-card h3 { font-size: 14px; padding: 16px 20px; border-bottom: 1px solid #2a2a4a; color: #fff; display: flex; align-items: center; gap: 8px; }
+    .holdings-card h3 { font-size: 14px; padding: 16px 20px; border-bottom: 1px solid #2a2a4a; color: #fff; display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+    .sort-hint { font-size: 11px; color: #666; font-weight: normal; }
     .holdings-table { width: 100%; border-collapse: collapse; }
-    .holdings-table th { text-align: left; padding: 12px 16px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #666; border-bottom: 1px solid #2a2a4a; background: #12122a; }
+    .holdings-table th { text-align: left; padding: 12px 12px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #666; border-bottom: 1px solid #2a2a4a; background: #12122a; cursor: pointer; user-select: none; white-space: nowrap; }
+    .holdings-table th:hover { color: #fff; background: #1a1a3e; }
+    .holdings-table th.sorted { color: #60a5fa; }
+    .holdings-table th.sorted::after { content: ' ▼'; font-size: 8px; }
+    .holdings-table th.sorted.asc::after { content: ' ▲'; }
     .holdings-table th.right, .holdings-table td.right { text-align: right; }
-    .holdings-table td { padding: 14px 16px; border-bottom: 1px solid #2a2a4a22; font-size: 14px; }
+    .holdings-table td { padding: 12px 12px; border-bottom: 1px solid #2a2a4a22; font-size: 13px; }
     .holdings-table tr:hover { background: #12122a; }
     .holdings-table tr:last-child td { border-bottom: none; }
-    .holdings-table .symbol { font-weight: 600; color: #fff; }
-    .holdings-table .company { font-size: 11px; color: #666; }
+    .holdings-table .symbol { font-weight: 600; color: #fff; font-size: 14px; }
+    .holdings-table .company { font-size: 10px; color: #666; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .holdings-table .up { color: #10b981; }
     .holdings-table .down { color: #ef4444; }
     .holdings-table .muted { color: #666; }
+    .holdings-table .warning { color: #f59e0b; }
+    .holdings-table .soon { background: #f59e0b22; padding: 2px 6px; border-radius: 4px; font-size: 11px; color: #f59e0b; }
+    
+    /* AI Summary Card */
+    .ai-summary-card { background: linear-gradient(135deg, #1a1a3e 0%, #12122a 100%); border-radius: 12px; border: 1px solid #3b82f6; margin-bottom: 24px; overflow: hidden; }
+    .ai-summary-card h3 { font-size: 14px; padding: 16px 20px; border-bottom: 1px solid #2a2a4a; color: #fff; display: flex; align-items: center; gap: 8px; background: #1e3a5f22; }
+    .ai-summary-card h3 .icon { font-size: 18px; }
+    .ai-summary-content { padding: 20px; font-size: 14px; line-height: 1.6; color: #c0c0c0; }
+    .ai-summary-content .stock-insight { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #2a2a4a; }
+    .ai-summary-content .stock-insight:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+    .ai-summary-content .stock-ticker { font-weight: 600; color: #60a5fa; margin-right: 8px; }
+    .ai-summary-content .bullish { color: #10b981; }
+    .ai-summary-content .bearish { color: #ef4444; }
+    .ai-summary-content .neutral { color: #888; }
+    .ai-loading { text-align: center; padding: 40px; color: #666; }
+    .ai-loading .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid #3b82f6; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 10px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
     
     /* Stock Detail Modal */
     .stock-detail { display: none; }
@@ -77,21 +99,26 @@
     .news-item .date { font-size: 10px; color: #666; margin-bottom: 3px; }
     .news-item .title { font-size: 13px; color: #fff; line-height: 1.4; text-decoration: none; display: block; }
     .news-item .title:hover { color: #60a5fa; }
+    .news-item.bearish .title { color: #ef4444; }
+    .news-item.bullish .title { color: #10b981; }
     .tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 600; margin-left: 6px; }
     .tag.new { background: #10b98122; color: #10b981; }
     .tag.transcript { background: #7c3aed22; color: #a78bfa; }
+    .tag.bearish { background: #ef444422; color: #ef4444; }
+    .tag.bullish { background: #10b98122; color: #10b981; }
     
     .clickable { cursor: pointer; }
     .member-label { font-size: 11px; color: #666; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
     .empty-state { text-align: center; padding: 60px 20px; color: #666; }
     .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
     
-    @media (max-width: 768px) { 
+    @media (max-width: 900px) { 
       .main { padding: 15px; } 
       .tabs { padding: 10px 15px; } 
-      .holdings-table { font-size: 12px; }
-      .holdings-table th, .holdings-table td { padding: 10px 8px; }
-      .summary-card .value { font-size: 22px; }
+      .holdings-table { font-size: 11px; }
+      .holdings-table th, .holdings-table td { padding: 8px 6px; }
+      .summary-card .value { font-size: 20px; }
+      .hide-mobile { display: none; }
     }
   </style>
 </head>
@@ -99,7 +126,7 @@
   <div class="header">
     <div>
       <h1>📊 Steele Family Portfolio</h1>
-      <div class="subtitle">Real-time Yahoo Finance + Seeking Alpha</div>
+      <div class="subtitle">Real-time Yahoo Finance + Seeking Alpha + AI Analysis</div>
     </div>
     <div class="last-updated">Updated: <span id="update-time">--</span></div>
   </div>
@@ -112,22 +139,38 @@
     <!-- Portfolio View -->
     <div id="portfolio-view">
       <div class="portfolio-summary" id="portfolio-summary"></div>
+      
+      <!-- AI Market Scan Summary -->
+      <div class="ai-summary-card" id="ai-summary-card" style="display:none;">
+        <h3><span class="icon">🤖</span> AI Market Scan</h3>
+        <div class="ai-summary-content" id="ai-summary-content">
+          <div class="ai-loading"><span class="spinner"></span>Analyzing your holdings...</div>
+        </div>
+      </div>
+      
       <div class="holdings-card">
-        <h3>💼 Holdings</h3>
+        <h3>
+          <span>💼 Holdings</span>
+          <span class="sort-hint">Click column headers to sort</span>
+        </h3>
+        <div style="overflow-x: auto;">
         <table class="holdings-table">
           <thead>
             <tr>
-              <th>Symbol</th>
-              <th class="right">Price</th>
-              <th class="right">Change</th>
-              <th class="right">Shares</th>
-              <th class="right">Cost Basis</th>
-              <th class="right">Value</th>
-              <th class="right">Gain/Loss</th>
+              <th data-sort="symbol">Symbol</th>
+              <th class="right" data-sort="price">Price</th>
+              <th class="right" data-sort="change">Day Chg</th>
+              <th class="right" data-sort="value">Value</th>
+              <th class="right" data-sort="gain">Gain/Loss</th>
+              <th class="right" data-sort="gainPct">Gain %</th>
+              <th class="right" data-sort="yield">Yield</th>
+              <th class="right hide-mobile" data-sort="exDiv">Ex-Div</th>
+              <th class="right hide-mobile" data-sort="annualDiv">Annual Div</th>
             </tr>
           </thead>
           <tbody id="holdings-body"></tbody>
         </table>
+        </div>
       </div>
     </div>
     
@@ -163,7 +206,7 @@
           <div class="news-list" id="detail-transcripts"><div style="color:#666">Loading...</div></div>
         </div>
         <div class="card" style="grid-column: span 2;">
-          <h3><span class="icon">📰</span> Analysis</h3>
+          <h3><span class="icon">📰</span> Analysis <span style="font-weight:normal;color:#666;font-size:10px;margin-left:8px">(🔴 bearish · 🟢 bullish)</span></h3>
           <div class="news-list" id="detail-articles"><div style="color:#666">Loading...</div></div>
         </div>
       </div>
@@ -224,14 +267,35 @@
     
     let currentMember = 'star';
     let stockCache = {};
+    let currentStockData = [];
+    let currentSort = { key: 'value', asc: false };
+    
+    // Bearish keywords for article sentiment
+    const BEARISH_KEYWORDS = ['sell', 'downgrade', 'bear', 'decline', 'risk', 'warning', 'concern', 'trouble', 'weak', 'drop', 'fall', 'crash', 'overvalued', 'avoid', 'cut', 'negative', 'miss', 'disappoint', 'struggle', 'headwind'];
+    const BULLISH_KEYWORDS = ['buy', 'upgrade', 'bull', 'growth', 'strong', 'beat', 'outperform', 'opportunity', 'undervalued', 'momentum', 'surge', 'rally', 'positive', 'exceed', 'impressive', 'tailwind', 'breakout'];
+    
+    function detectSentiment(title) {
+      const lower = title.toLowerCase();
+      const bearishScore = BEARISH_KEYWORDS.filter(w => lower.includes(w)).length;
+      const bullishScore = BULLISH_KEYWORDS.filter(w => lower.includes(w)).length;
+      if (bearishScore > bullishScore) return 'bearish';
+      if (bullishScore > bearishScore) return 'bullish';
+      return 'neutral';
+    }
     
     function formatMoney(n) {
-      if (n === undefined || n === null) return '--';
+      if (n === undefined || n === null || isNaN(n)) return '--';
       return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
     
+    function formatCompact(n) {
+      if (n === undefined || n === null || isNaN(n)) return '--';
+      if (Math.abs(n) >= 1000) return '$' + (n/1000).toFixed(1) + 'K';
+      return '$' + n.toFixed(0);
+    }
+    
     function formatPercent(n) {
-      if (n === undefined || n === null) return '--';
+      if (n === undefined || n === null || isNaN(n)) return '--';
       return (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
     }
     
@@ -250,6 +314,15 @@
       return new Date(dateStr).toLocaleDateString('en-US', {month:'short',day:'numeric'});
     }
     
+    function daysUntil(dateStr) {
+      if (!dateStr) return null;
+      const d = new Date(dateStr);
+      const now = new Date();
+      now.setHours(0,0,0,0);
+      d.setHours(0,0,0,0);
+      return Math.ceil((d - now) / (1000 * 60 * 60 * 24));
+    }
+    
     // Build tabs
     function buildTabs() {
       const tabsEl = document.getElementById('tabs');
@@ -265,14 +338,52 @@
       }));
     }
     
+    // Sorting
+    function setupSorting() {
+      document.querySelectorAll('.holdings-table th[data-sort]').forEach(th => {
+        th.addEventListener('click', () => {
+          const key = th.dataset.sort;
+          if (currentSort.key === key) {
+            currentSort.asc = !currentSort.asc;
+          } else {
+            currentSort.key = key;
+            currentSort.asc = false;
+          }
+          renderHoldings();
+        });
+      });
+    }
+    
+    function sortData(data) {
+      const key = currentSort.key;
+      const asc = currentSort.asc;
+      return [...data].sort((a, b) => {
+        let valA = a[key], valB = b[key];
+        if (key === 'symbol') {
+          valA = valA || ''; valB = valB || '';
+          return asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        }
+        if (key === 'exDiv') {
+          valA = a.exDivDays ?? 999; valB = b.exDivDays ?? 999;
+        }
+        valA = valA ?? -Infinity; valB = valB ?? -Infinity;
+        return asc ? valA - valB : valB - valA;
+      });
+    }
+    
     async function fetchStock(symbol) {
       if (stockCache[symbol] && (Date.now() - stockCache[symbol].fetchedAt) < 60000) {
         return stockCache[symbol].data;
       }
-      const res = await fetch('/api/stock/' + symbol);
-      const data = await res.json();
-      stockCache[symbol] = { data, fetchedAt: Date.now() };
-      return data;
+      try {
+        const res = await fetch('/api/stock/' + symbol);
+        const data = await res.json();
+        stockCache[symbol] = { data, fetchedAt: Date.now() };
+        return data;
+      } catch (e) {
+        console.error('Failed to fetch', symbol, e);
+        return {};
+      }
     }
     
     function showPortfolio() {
@@ -298,7 +409,7 @@
       
       const isUp = d.change >= 0;
       document.getElementById('detail-stock-name').textContent = symbol + ' - ' + (d.name || '');
-      document.getElementById('detail-company-name').textContent = (d.exchange || '') + ' · ' + (d.analystRating || '');
+      document.getElementById('detail-company-name').textContent = (d.exchange || '') + ' · ' + shares.toLocaleString() + ' shares · ' + (d.analystRating || '');
       document.getElementById('detail-stock-price').textContent = formatMoney(d.price);
       document.getElementById('detail-stock-price').className = 'price ' + (isUp ? 'up' : 'down');
       document.getElementById('detail-price-change').textContent = (isUp ? '+' : '') + (d.change?.toFixed(2) || '0') + ' (' + (d.changePercent?.toFixed(2) || '0') + '%)';
@@ -307,6 +418,7 @@
       const qDiv = (d.dividendRate || 0) / 4;
       const qPay = qDiv * shares;
       const aPay = (d.dividendRate || 0) * shares;
+      const exDivDays = daysUntil(d.exDividendDate);
       
       document.getElementById('detail-position').innerHTML = 
         `<div class="stat-item"><label>Shares</label><div class="value">${shares.toLocaleString()}</div></div>` +
@@ -314,7 +426,9 @@
         `<div class="stat-item"><label>Current Value</label><div class="value highlight">${formatMoney(currentValue)}</div></div>` +
         `<div class="stat-item"><label>Total Gain</label><div class="value ${gain >= 0 ? 'highlight' : 'warning'}">${formatMoney(gain)} (${formatPercent(gainPct)})</div></div>` +
         `<div class="stat-item"><label>Dividend Yield</label><div class="value">${(d.dividendYield?.toFixed(2) || '--')}%</div></div>` +
-        `<div class="stat-item"><label>Annual Dividend</label><div class="value highlight">${formatMoney(aPay)}</div></div>`;
+        `<div class="stat-item"><label>Annual Dividend</label><div class="value highlight">${formatMoney(aPay)}</div></div>` +
+        `<div class="stat-item"><label>Ex-Dividend Date</label><div class="value ${exDivDays !== null && exDivDays <= 14 ? 'warning' : ''}">${formatDate(d.exDividendDate)}${exDivDays !== null && exDivDays >= 0 && exDivDays <= 14 ? ' ('+exDivDays+'d)' : ''}</div></div>` +
+        `<div class="stat-item"><label>Pay Date</label><div class="value">${formatDate(d.dividendDate)}</div></div>`;
       
       document.getElementById('detail-stats').innerHTML = 
         `<div class="stat-item"><label>Day Range</label><div class="value">${formatMoney(d.dayLow)} - ${formatMoney(d.dayHigh)}</div></div>` +
@@ -322,7 +436,7 @@
         `<div class="stat-item"><label>Volume</label><div class="value">${((d.volume/1e6)?.toFixed(1)||'--')}M</div></div>` +
         `<div class="stat-item"><label>Market Cap</label><div class="value">$${((d.marketCap/1e9)?.toFixed(1)||'--')}B</div></div>` +
         `<div class="stat-item"><label>Next Earnings</label><div class="value warning">${formatDate(d.earningsDate)}</div></div>` +
-        `<div class="stat-item"><label>Pay Date</label><div class="value">${formatDate(d.dividendDate)}</div></div>`;
+        `<div class="stat-item"><label>P/E Ratio</label><div class="value">${d.trailingPE?.toFixed(1) || '--'}</div></div>`;
       
       if (d.pressReleases?.length) {
         document.getElementById('detail-press').innerHTML = d.pressReleases.map(p => {
@@ -342,12 +456,52 @@
       }
       
       if (d.articles?.length) {
-        document.getElementById('detail-articles').innerHTML = d.articles.map(a => 
-          `<div class="news-item"><div class="date">${timeAgo(a.attributes?.publishOn)}</div><a class="title" href="https://seekingalpha.com${a.links?.self||''}" target="_blank">${a.attributes?.title||''}</a></div>`
-        ).join('');
+        document.getElementById('detail-articles').innerHTML = d.articles.map(a => {
+          const sentiment = detectSentiment(a.attributes?.title || '');
+          const sentimentClass = sentiment !== 'neutral' ? sentiment : '';
+          const sentimentTag = sentiment !== 'neutral' ? `<span class="tag ${sentiment}">${sentiment.toUpperCase()}</span>` : '';
+          return `<div class="news-item ${sentimentClass}"><div class="date">${timeAgo(a.attributes?.publishOn)}${sentimentTag}</div><a class="title" href="https://seekingalpha.com${a.links?.self||''}" target="_blank">${a.attributes?.title||''}</a></div>`;
+        }).join('');
       } else {
         document.getElementById('detail-articles').innerHTML = '<div style="color:#666">No recent analysis</div>';
       }
+    }
+    
+    function renderHoldings() {
+      const sorted = sortData(currentStockData);
+      
+      // Update sort indicators
+      document.querySelectorAll('.holdings-table th').forEach(th => {
+        th.classList.remove('sorted', 'asc');
+        if (th.dataset.sort === currentSort.key) {
+          th.classList.add('sorted');
+          if (currentSort.asc) th.classList.add('asc');
+        }
+      });
+      
+      document.getElementById('holdings-body').innerHTML = sorted.map(s => {
+        const isUp = (s.change || 0) >= 0;
+        const gainUp = s.gain >= 0;
+        const exDivDays = s.exDivDays;
+        const exDivSoon = exDivDays !== null && exDivDays >= 0 && exDivDays <= 14;
+        
+        return `
+          <tr class="clickable" onclick="showStockDetail('${s.symbol}')">
+            <td>
+              <div class="symbol">${s.symbol}</div>
+              <div class="company">${s.name || ''}</div>
+            </td>
+            <td class="right">${formatMoney(s.price)}</td>
+            <td class="right ${isUp ? 'up' : 'down'}">${isUp ? '+' : ''}${s.change?.toFixed(2) || '0'}</td>
+            <td class="right">${formatCompact(s.value)}</td>
+            <td class="right ${gainUp ? 'up' : 'down'}">${formatCompact(s.gain)}</td>
+            <td class="right ${gainUp ? 'up' : 'down'}">${formatPercent(s.gainPct)}</td>
+            <td class="right ${(s.yield || 0) > 3 ? 'up' : ''}">${s.yield?.toFixed(2) || '--'}%</td>
+            <td class="right hide-mobile">${exDivSoon ? '<span class="soon">'+exDivDays+'d</span>' : (s.exDivDate || '--')}</td>
+            <td class="right hide-mobile">${formatCompact(s.annualDiv)}</td>
+          </tr>
+        `;
+      }).join('');
     }
     
     async function loadPortfolio() {
@@ -357,8 +511,9 @@
       
       if (!member.holdings.length) {
         document.getElementById('portfolio-summary').innerHTML = '';
+        document.getElementById('ai-summary-card').style.display = 'none';
         document.getElementById('holdings-body').innerHTML = `
-          <tr><td colspan="7" class="empty-state">
+          <tr><td colspan="9" class="empty-state">
             <div class="icon">📭</div>
             <div>No holdings data yet</div>
             <div style="font-size:12px;margin-top:8px">Share a screenshot of this portfolio to add it</div>
@@ -366,10 +521,34 @@
         return;
       }
       
+      // Show AI card with loading
+      document.getElementById('ai-summary-card').style.display = 'block';
+      document.getElementById('ai-summary-content').innerHTML = '<div class="ai-loading"><span class="spinner"></span>Analyzing your holdings...</div>';
+      
       // Fetch all stock data
       const stockData = await Promise.all(
-        member.holdings.map(h => fetchStock(h.symbol).then(d => ({ ...h, ...d })))
+        member.holdings.map(h => fetchStock(h.symbol).then(d => {
+          const value = h.shares * (d.price || 0);
+          const cost = h.shares * h.costBasis;
+          const gain = value - cost;
+          const gainPct = cost > 0 ? (gain / cost) * 100 : 0;
+          const annualDiv = h.shares * (d.dividendRate || 0);
+          const exDivDays = daysUntil(d.exDividendDate);
+          return { 
+            ...h, 
+            ...d, 
+            value, 
+            gain, 
+            gainPct,
+            yield: d.dividendYield || 0,
+            annualDiv,
+            exDivDate: formatDate(d.exDividendDate),
+            exDivDays
+          };
+        }))
       );
+      
+      currentStockData = stockData;
       
       // Calculate totals
       let totalValue = member.cash || 0;
@@ -378,37 +557,41 @@
       let totalAnnualDiv = 0;
       
       stockData.forEach(s => {
-        const value = s.shares * (s.price || 0);
-        const cost = s.shares * s.costBasis;
-        const dayGain = s.shares * (s.change || 0);
-        const annualDiv = s.shares * (s.dividendRate || 0);
-        
-        totalValue += value;
-        totalCost += cost;
-        totalDayGain += dayGain;
-        totalAnnualDiv += annualDiv;
+        totalValue += s.value;
+        totalCost += s.shares * s.costBasis;
+        totalDayGain += s.shares * (s.change || 0);
+        totalAnnualDiv += s.annualDiv;
       });
       
       const totalGain = totalValue - totalCost - (member.cash || 0);
       const totalGainPct = totalCost > 0 ? (totalGain / totalCost) * 100 : 0;
       const dayGainPct = (totalValue - (member.cash || 0)) > 0 ? (totalDayGain / (totalValue - (member.cash || 0))) * 100 : 0;
+      const avgYield = totalValue > 0 ? (totalAnnualDiv / totalValue) * 100 : 0;
+      
+      // Upcoming ex-div
+      const upcomingExDiv = stockData.filter(s => s.exDivDays !== null && s.exDivDays >= 0 && s.exDivDays <= 30).sort((a,b) => a.exDivDays - b.exDivDays);
       
       // Update summary cards
       document.getElementById('portfolio-summary').innerHTML = `
         <div class="summary-card">
           <div class="label">Total Value</div>
           <div class="value">${formatMoney(totalValue)}</div>
-          <div class="sub ${totalGain >= 0 ? 'up' : 'down'}">${formatMoney(totalGain)} (${formatPercent(totalGainPct)})</div>
+          <div class="sub ${totalGain >= 0 ? 'up' : 'down'}">${totalGain >= 0 ? '+' : ''}${formatCompact(totalGain)} (${formatPercent(totalGainPct)})</div>
         </div>
         <div class="summary-card">
-          <div class="label">Today's Change</div>
+          <div class="label">Today</div>
           <div class="value ${totalDayGain >= 0 ? 'up' : 'down'}">${totalDayGain >= 0 ? '+' : ''}${formatMoney(totalDayGain)}</div>
           <div class="sub ${totalDayGain >= 0 ? 'up' : 'down'}">${formatPercent(dayGainPct)}</div>
         </div>
         <div class="summary-card">
           <div class="label">Annual Dividends</div>
           <div class="value up">${formatMoney(totalAnnualDiv)}</div>
-          <div class="sub">${formatMoney(totalAnnualDiv / 4)}/quarter</div>
+          <div class="sub">${avgYield.toFixed(2)}% yield</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Next Ex-Div</div>
+          <div class="value ${upcomingExDiv.length ? 'warning' : ''}">${upcomingExDiv.length ? upcomingExDiv[0].symbol : '--'}</div>
+          <div class="sub">${upcomingExDiv.length ? upcomingExDiv[0].exDivDays + ' days' : 'None upcoming'}</div>
         </div>
         <div class="summary-card">
           <div class="label">Cash</div>
@@ -417,38 +600,70 @@
         </div>
       `;
       
-      // Update holdings table
-      document.getElementById('holdings-body').innerHTML = stockData.map(s => {
-        const value = s.shares * (s.price || 0);
-        const cost = s.shares * s.costBasis;
-        const gain = value - cost;
-        const gainPct = cost > 0 ? (gain / cost) * 100 : 0;
-        const isUp = (s.change || 0) >= 0;
-        const gainUp = gain >= 0;
-        
-        return `
-          <tr class="clickable" onclick="showStockDetail('${s.symbol}')">
-            <td>
-              <div class="symbol">${s.symbol}</div>
-              <div class="company">${s.name || ''}</div>
-            </td>
-            <td class="right">${formatMoney(s.price)}</td>
-            <td class="right ${isUp ? 'up' : 'down'}">${isUp ? '+' : ''}${s.change?.toFixed(2) || '0'} (${s.changePercent?.toFixed(1) || '0'}%)</td>
-            <td class="right">${s.shares.toLocaleString()}</td>
-            <td class="right muted">${formatMoney(s.costBasis)}</td>
-            <td class="right">${formatMoney(value)}</td>
-            <td class="right ${gainUp ? 'up' : 'down'}">${formatMoney(gain)}<br><span style="font-size:11px">${formatPercent(gainPct)}</span></td>
-          </tr>
-        `;
-      }).join('');
+      // Render holdings table
+      renderHoldings();
       
       document.getElementById('update-time').textContent = new Date().toLocaleTimeString('en-US', {hour:'numeric',minute:'2-digit'});
+      
+      // Generate AI summary
+      generateAISummary(stockData);
+    }
+    
+    async function generateAISummary(stockData) {
+      try {
+        const res = await fetch('/api/ai-summary', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ stocks: stockData.map(s => ({
+            symbol: s.symbol,
+            name: s.name,
+            price: s.price,
+            change: s.change,
+            changePercent: s.changePercent,
+            gain: s.gain,
+            gainPct: s.gainPct,
+            yield: s.yield,
+            exDivDays: s.exDivDays,
+            articles: s.articles?.slice(0, 3).map(a => a.attributes?.title),
+            pressReleases: s.pressReleases?.slice(0, 2).map(p => p.attributes?.title)
+          }))})
+        });
+        const data = await res.json();
+        if (data.summary) {
+          document.getElementById('ai-summary-content').innerHTML = data.summary;
+        } else {
+          document.getElementById('ai-summary-content').innerHTML = '<div style="color:#666">AI summary unavailable</div>';
+        }
+      } catch (e) {
+        // Fallback to simple summary
+        const highlights = [];
+        const topGainer = [...stockData].sort((a,b) => b.gainPct - a.gainPct)[0];
+        const topLoser = [...stockData].sort((a,b) => a.gainPct - b.gainPct)[0];
+        const highYield = [...stockData].filter(s => s.yield > 3).sort((a,b) => b.yield - a.yield);
+        const exDivSoon = stockData.filter(s => s.exDivDays !== null && s.exDivDays >= 0 && s.exDivDays <= 7);
+        
+        if (topGainer && topGainer.gainPct > 50) {
+          highlights.push(`<div class="stock-insight"><span class="stock-ticker">${topGainer.symbol}</span> <span class="bullish">Top performer</span> with ${formatPercent(topGainer.gainPct)} gains.</div>`);
+        }
+        if (topLoser && topLoser.gainPct < -10) {
+          highlights.push(`<div class="stock-insight"><span class="stock-ticker">${topLoser.symbol}</span> <span class="bearish">Underperforming</span> at ${formatPercent(topLoser.gainPct)}. Consider reviewing position.</div>`);
+        }
+        if (highYield.length) {
+          highlights.push(`<div class="stock-insight"><span class="bullish">High yield positions:</span> ${highYield.map(s => s.symbol + ' (' + s.yield.toFixed(1) + '%)').join(', ')}</div>`);
+        }
+        if (exDivSoon.length) {
+          highlights.push(`<div class="stock-insight"><span class="stock-ticker warning">⚠️ Ex-dividend coming:</span> ${exDivSoon.map(s => s.symbol + ' in ' + s.exDivDays + 'd').join(', ')}</div>`);
+        }
+        
+        document.getElementById('ai-summary-content').innerHTML = highlights.length ? highlights.join('') : '<div style="color:#666">No significant alerts</div>';
+      }
     }
     
     // Initialize
     buildTabs();
+    setupSorting();
     loadPortfolio();
-    setInterval(loadPortfolio, 60000);
+    setInterval(loadPortfolio, 120000);
   </script>
 </body>
 </html>
