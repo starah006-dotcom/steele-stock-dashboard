@@ -6,106 +6,63 @@
   <title>Stock Dashboard - Steele Family</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { 
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #0f0f23; color: #e0e0e0; min-height: 100vh;
-    }
-    .header {
-      background: linear-gradient(135deg, #1a1a3e 0%, #0f0f23 100%);
-      padding: 20px 30px; border-bottom: 1px solid #2a2a4a;
-      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
-    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f0f23; color: #e0e0e0; min-height: 100vh; }
+    .header { background: linear-gradient(135deg, #1a1a3e 0%, #0f0f23 100%); padding: 20px 30px; border-bottom: 1px solid #2a2a4a; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
     .header h1 { font-size: 24px; font-weight: 600; color: #fff; }
     .header .subtitle { color: #888; font-size: 14px; margin-top: 4px; }
     .last-updated { color: #666; font-size: 12px; }
-    
-    .tabs {
-      display: flex; gap: 4px; padding: 15px 30px;
-      background: #12122a; border-bottom: 1px solid #2a2a4a; overflow-x: auto;
-    }
-    .tab {
-      padding: 8px 16px; background: transparent; border: 1px solid #3a3a5a;
-      border-radius: 8px; color: #888; cursor: pointer; white-space: nowrap;
-      font-size: 13px; transition: all 0.2s;
-    }
+    .tabs { display: flex; gap: 4px; padding: 12px 30px; background: #12122a; border-bottom: 1px solid #2a2a4a; overflow-x: auto; }
+    .tab { padding: 8px 14px; background: transparent; border: 1px solid #3a3a5a; border-radius: 8px; color: #888; cursor: pointer; white-space: nowrap; font-size: 12px; }
     .tab:hover { background: #1a1a3e; color: #fff; }
     .tab.active { background: #2563eb; border-color: #2563eb; color: #fff; }
     .tab.parent { border-color: #f59e0b44; }
     .tab.parent.active { background: #f59e0b; border-color: #f59e0b; }
-    
     .main { padding: 30px; max-width: 1400px; margin: 0 auto; }
-    
-    .stock-header {
-      display: flex; justify-content: space-between; align-items: flex-start;
-      margin-bottom: 30px; flex-wrap: wrap; gap: 20px;
-    }
-    .stock-info h2 { font-size: 32px; color: #fff; }
-    .stock-info .company-name { color: #888; font-size: 16px; margin-top: 4px; }
-    
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-bottom: 20px; }
-    
-    .card {
-      background: #1a1a3e; border-radius: 12px; padding: 24px; border: 1px solid #2a2a4a;
-    }
-    .card h3 {
-      font-size: 14px; text-transform: uppercase; letter-spacing: 1px;
-      color: #888; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
-    }
-    .card h3 .icon { font-size: 18px; }
-    
-    .dividend-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-    .dividend-item label { font-size: 12px; color: #666; display: block; margin-bottom: 4px; }
-    .dividend-item .value { font-size: 20px; font-weight: 600; color: #fff; }
-    .dividend-item .value.highlight { color: #10b981; }
-    .dividend-item .value.warning { color: #f59e0b; }
-    
-    .news-list { display: flex; flex-direction: column; gap: 12px; max-height: 300px; overflow-y: auto; }
-    .news-item { padding-bottom: 12px; border-bottom: 1px solid #2a2a4a; }
-    .news-item:last-child { border-bottom: none; padding-bottom: 0; }
-    .news-item .date { font-size: 11px; color: #666; margin-bottom: 4px; }
-    .news-item .title { 
-      font-size: 14px; color: #fff; line-height: 1.4;
-      text-decoration: none; display: block;
-    }
+    .stock-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; flex-wrap: wrap; gap: 20px; }
+    .stock-info h2 { font-size: 28px; color: #fff; }
+    .stock-info .company-name { color: #888; font-size: 14px; margin-top: 4px; }
+    .price-box { text-align: right; }
+    .price { font-size: 42px; font-weight: 700; }
+    .price.up { color: #10b981; }
+    .price.down { color: #ef4444; }
+    .price-change { font-size: 16px; margin-top: 4px; }
+    .price-change.up { color: #10b981; }
+    .price-change.down { color: #ef4444; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 20px; }
+    .card { background: #1a1a3e; border-radius: 12px; padding: 20px; border: 1px solid #2a2a4a; }
+    .card h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+    .card h3 .icon { font-size: 16px; }
+    .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .stat-item label { font-size: 11px; color: #666; display: block; margin-bottom: 2px; }
+    .stat-item .value { font-size: 18px; font-weight: 600; color: #fff; }
+    .stat-item .value.highlight { color: #10b981; }
+    .stat-item .value.warning { color: #f59e0b; }
+    .news-list { display: flex; flex-direction: column; gap: 10px; max-height: 280px; overflow-y: auto; }
+    .news-item { padding-bottom: 10px; border-bottom: 1px solid #2a2a4a; }
+    .news-item:last-child { border-bottom: none; }
+    .news-item .date { font-size: 10px; color: #666; margin-bottom: 3px; }
+    .news-item .title { font-size: 13px; color: #fff; line-height: 1.4; text-decoration: none; display: block; }
     .news-item .title:hover { color: #60a5fa; }
     .news-item.urgent .title { color: #f59e0b; }
-    
-    .tag { 
-      display: inline-block; padding: 2px 8px; border-radius: 4px;
-      font-size: 10px; font-weight: 600; margin-left: 8px;
-    }
-    .tag.transcript { background: #7c3aed22; color: #a78bfa; }
-    .tag.press { background: #2563eb22; color: #60a5fa; }
+    .tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 600; margin-left: 6px; }
     .tag.new { background: #10b98122; color: #10b981; }
-    
-    .alert-banner {
-      background: linear-gradient(135deg, #065f46 0%, #064e3b 100%);
-      border: 1px solid #10b981; border-radius: 8px; padding: 16px 20px;
-      margin-bottom: 20px; display: flex; align-items: center; gap: 12px;
-    }
-    .alert-banner .icon { font-size: 24px; }
+    .tag.transcript { background: #7c3aed22; color: #a78bfa; }
+    .alert-banner { background: linear-gradient(135deg, #065f46 0%, #064e3b 100%); border: 1px solid #10b981; border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; }
+    .alert-banner .icon { font-size: 22px; }
     .alert-banner .text { flex: 1; }
-    .alert-banner .title { font-weight: 600; color: #fff; }
-    .alert-banner .desc { font-size: 13px; color: #a7f3d0; margin-top: 2px; }
-    
-    .loading { color: #888; font-style: italic; padding: 20px; text-align: center; }
-    .member-name { font-size: 12px; color: #666; margin-bottom: 20px; }
-    
-    @media (max-width: 768px) {
-      .header { flex-direction: column; align-items: flex-start; }
-      .main { padding: 15px; }
-      .tabs { padding: 10px 15px; }
-      .tab { padding: 6px 12px; font-size: 12px; }
-    }
+    .alert-banner .title { font-weight: 600; color: #fff; font-size: 14px; }
+    .alert-banner .desc { font-size: 12px; color: #a7f3d0; margin-top: 2px; }
+    .member-label { font-size: 11px; color: #666; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
+    @media (max-width: 768px) { .main { padding: 15px; } .tabs { padding: 10px 15px; } .price { font-size: 32px; } }
   </style>
 </head>
 <body>
   <div class="header">
     <div>
       <h1>📊 Steele Family Portfolio</h1>
-      <div class="subtitle">Live data from Seeking Alpha</div>
+      <div class="subtitle">Real-time Yahoo Finance + Seeking Alpha</div>
     </div>
-    <div class="last-updated">Updated: <span id="update-time">Loading...</span></div>
+    <div class="last-updated">Updated: <span id="update-time">--</span></div>
   </div>
   
   <div class="tabs">
@@ -122,7 +79,6 @@
     <div class="tab" data-member="maverick">🔥 Maverick</div>
     <div class="tab" data-member="cannon">💥 Cannon</div>
     <div class="tab" data-member="missile">🚀 Missile</div>
-    <div class="tab" data-member="all" style="margin-left: auto; background: #1a1a3e;">📊 All</div>
   </div>
   
   <div class="main">
@@ -134,163 +90,145 @@
       </div>
     </div>
     
-    <div class="member-name" id="member-name">Viewing: Peter's Portfolio</div>
+    <div class="member-label" id="member-label">PETER'S PORTFOLIO</div>
     
     <div class="stock-header">
       <div class="stock-info">
         <h2 id="stock-name">Loading...</h2>
-        <div class="company-name" id="company-name">Fetching data...</div>
+        <div class="company-name" id="company-name">--</div>
+      </div>
+      <div class="price-box">
+        <div class="price" id="stock-price">--</div>
+        <div class="price-change" id="price-change">--</div>
       </div>
     </div>
     
     <div class="grid">
       <div class="card">
-        <h3><span class="icon">💰</span> Dividend Information</h3>
-        <div class="dividend-grid" id="dividend-info">
-          <div class="loading">Loading...</div>
-        </div>
+        <h3><span class="icon">💰</span> Dividend</h3>
+        <div class="stat-grid" id="dividend-info"></div>
       </div>
-      
+      <div class="card">
+        <h3><span class="icon">📈</span> Key Stats</h3>
+        <div class="stat-grid" id="key-stats"></div>
+      </div>
       <div class="card">
         <h3><span class="icon">📋</span> Press Releases</h3>
-        <div class="news-list" id="press-releases">
-          <div class="loading">Loading...</div>
-        </div>
+        <div class="news-list" id="press-releases"><div style="color:#666">Loading...</div></div>
       </div>
-      
       <div class="card">
-        <h3><span class="icon">🎙️</span> Earnings Transcripts</h3>
-        <div class="news-list" id="transcripts">
-          <div class="loading">Loading...</div>
-        </div>
+        <h3><span class="icon">🎙️</span> Earnings Calls</h3>
+        <div class="news-list" id="transcripts"><div style="color:#666">Loading...</div></div>
       </div>
-      
-      <div class="card">
-        <h3><span class="icon">📰</span> Analysis & Articles</h3>
-        <div class="news-list" id="articles-list">
-          <div class="loading">Loading...</div>
-        </div>
+      <div class="card" style="grid-column: span 2;">
+        <h3><span class="icon">📰</span> Analysis</h3>
+        <div class="news-list" id="articles-list"><div style="color:#666">Loading...</div></div>
       </div>
     </div>
   </div>
 
   <script>
-    // Family member portfolios (to be populated with actual holdings)
     const PORTFOLIOS = {
-      peter: { name: 'Peter', shares: { ET: 54000 }, primary: 'ET' },
-      sherry: { name: 'Sherry', shares: { ET: 0 }, primary: 'ET' },
-      sky: { name: 'Sky', shares: { ET: 0 }, primary: 'ET' },
-      star: { name: 'Star', shares: { ET: 1000 }, primary: 'ET' },
-      jet: { name: 'Jet', shares: { ET: 0 }, primary: 'ET' },
-      everly: { name: 'Everly', shares: { ET: 0 }, primary: 'ET' },
-      leo: { name: 'Leo', shares: { ET: 0 }, primary: 'ET' },
-      autumn: { name: 'Autumn', shares: { ET: 0 }, primary: 'ET' },
-      ace: { name: 'Ace', shares: { ET: 0 }, primary: 'ET' },
-      stryker: { name: 'Stryker', shares: { ET: 0 }, primary: 'ET' },
-      maverick: { name: 'Maverick', shares: { ET: 0 }, primary: 'ET' },
-      cannon: { name: 'Cannon', shares: { ET: 0 }, primary: 'ET' },
-      missile: { name: 'Missile', shares: { ET: 0 }, primary: 'ET' },
+      peter: { name: 'Peter', shares: { ET: 54000 } },
+      sherry: { name: 'Sherry', shares: { ET: 5000 } },
+      sky: { name: 'Sky', shares: { ET: 1000 } },
+      star: { name: 'Star', shares: { ET: 1000 } },
+      jet: { name: 'Jet', shares: { ET: 2000 } },
+      everly: { name: 'Everly', shares: { ET: 500 } },
+      leo: { name: 'Leo', shares: { ET: 500 } },
+      autumn: { name: 'Autumn', shares: { ET: 500 } },
+      ace: { name: 'Ace', shares: { ET: 500 } },
+      stryker: { name: 'Stryker', shares: { ET: 500 } },
+      maverick: { name: 'Maverick', shares: { ET: 500 } },
+      cannon: { name: 'Cannon', shares: { ET: 500 } },
+      missile: { name: 'Missile', shares: { ET: 500 } }
     };
-    
     let currentMember = 'peter';
     
     function timeAgo(dateStr) {
-      const date = new Date(dateStr);
-      const now = new Date();
-      const hours = Math.floor((now - date) / (1000 * 60 * 60));
-      if (hours < 1) return 'Just now';
-      if (hours < 24) return hours + 'h ago';
-      const days = Math.floor(hours / 24);
-      if (days === 1) return 'Yesterday';
-      if (days < 7) return days + 'd ago';
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      if (!dateStr) return '--';
+      const d = new Date(dateStr), now = new Date();
+      const hrs = Math.floor((now - d) / 36e5);
+      if (hrs < 1) return 'Just now';
+      if (hrs < 24) return hrs + 'h ago';
+      const days = Math.floor(hrs / 24);
+      return days === 1 ? 'Yesterday' : days < 7 ? days + 'd ago' : d.toLocaleDateString('en-US', {month:'short',day:'numeric'});
     }
     
-    async function loadStockData(symbol = 'et') {
-      const member = PORTFOLIOS[currentMember];
-      const sharesHeld = member?.shares?.[symbol.toUpperCase()] || 0;
-      
-      document.getElementById('member-name').textContent = 'Viewing: ' + member.name + "'s Portfolio";
+    function formatDate(dateStr) {
+      if (!dateStr) return '--';
+      return new Date(dateStr).toLocaleDateString('en-US', {month:'short',day:'numeric'});
+    }
+    
+    async function load(symbol = 'ET') {
+      const m = PORTFOLIOS[currentMember];
+      const shares = m?.shares?.[symbol] || 0;
+      document.getElementById('member-label').textContent = m.name.toUpperCase() + "'S PORTFOLIO";
       
       try {
         const res = await fetch('/api/stock/' + symbol);
-        const data = await res.json();
+        const d = await res.json();
         
-        document.getElementById('stock-name').textContent = 
-          (data.info?.attributes?.name || symbol.toUpperCase()) + ' - ' + (data.info?.attributes?.companyName || '');
-        document.getElementById('company-name').textContent = 
-          (data.info?.attributes?.exchange || '') + ' · ' + sharesHeld.toLocaleString() + ' shares';
-        document.getElementById('update-time').textContent = 
-          new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+        const isUp = d.change >= 0;
+        document.getElementById('stock-name').textContent = symbol + ' - ' + (d.name || '');
+        document.getElementById('company-name').textContent = (d.exchange || '') + ' · ' + shares.toLocaleString() + ' shares · ' + (d.analystRating || '');
+        document.getElementById('stock-price').textContent = '$' + (d.price?.toFixed(2) || '--');
+        document.getElementById('stock-price').className = 'price ' + (isUp ? 'up' : 'down');
+        document.getElementById('price-change').textContent = (isUp ? '+' : '') + (d.change?.toFixed(2) || '0') + ' (' + (d.changePercent?.toFixed(2) || '0') + '%)';
+        document.getElementById('price-change').className = 'price-change ' + (isUp ? 'up' : 'down');
+        document.getElementById('update-time').textContent = new Date().toLocaleTimeString('en-US', {hour:'numeric',minute:'2-digit'});
         
-        const divRate = data.dividendRate || 1.33;
-        const quarterlyDiv = divRate / 4;
-        const quarterlyPayment = quarterlyDiv * sharesHeld;
-        
+        const qDiv = (d.dividendRate || 0) / 4;
+        const qPay = qDiv * shares;
+        const aPay = (d.dividendRate || 0) * shares;
         document.getElementById('dividend-info').innerHTML = 
-          '<div class="dividend-item"><label>Annual Rate</label><div class="value highlight">$' + divRate.toFixed(2) + '</div></div>' +
-          '<div class="dividend-item"><label>Quarterly</label><div class="value highlight">$' + quarterlyDiv.toFixed(4) + '</div></div>' +
-          '<div class="dividend-item"><label>Ex-Div Date</label><div class="value warning">Feb 6</div></div>' +
-          '<div class="dividend-item"><label>Pay Date</label><div class="value">Feb 20</div></div>' +
-          '<div class="dividend-item"><label>Your Quarterly</label><div class="value highlight">$' + quarterlyPayment.toLocaleString() + '</div></div>' +
-          '<div class="dividend-item"><label>Your Annual</label><div class="value highlight">$' + (divRate * sharesHeld).toLocaleString() + '</div></div>';
+          '<div class="stat-item"><label>Annual Rate</label><div class="value highlight">$' + (d.dividendRate?.toFixed(2) || '--') + '</div></div>' +
+          '<div class="stat-item"><label>Yield</label><div class="value highlight">' + (d.dividendYield?.toFixed(2) || '--') + '%</div></div>' +
+          '<div class="stat-item"><label>Pay Date</label><div class="value warning">' + formatDate(d.dividendDate) + '</div></div>' +
+          '<div class="stat-item"><label>Next Earnings</label><div class="value">' + formatDate(d.earningsDate) + '</div></div>' +
+          '<div class="stat-item"><label>Your Quarterly</label><div class="value highlight">$' + qPay.toLocaleString() + '</div></div>' +
+          '<div class="stat-item"><label>Your Annual</label><div class="value highlight">$' + aPay.toLocaleString() + '</div></div>';
         
-        // Press Releases
-        if (data.pressReleases?.length > 0) {
-          const hasNew = data.pressReleases.some(function(pr) {
-            return (new Date() - new Date(pr.attributes?.publishOn)) / (1000*60*60) < 24;
-          });
-          
+        document.getElementById('key-stats').innerHTML = 
+          '<div class="stat-item"><label>Day Range</label><div class="value">$' + (d.dayLow?.toFixed(2)||'--') + ' - $' + (d.dayHigh?.toFixed(2)||'--') + '</div></div>' +
+          '<div class="stat-item"><label>52W Range</label><div class="value">$' + (d.fiftyTwoWeekLow?.toFixed(2)||'--') + ' - $' + (d.fiftyTwoWeekHigh?.toFixed(2)||'--') + '</div></div>' +
+          '<div class="stat-item"><label>Volume</label><div class="value">' + ((d.volume/1e6)?.toFixed(1)||'--') + 'M</div></div>' +
+          '<div class="stat-item"><label>Market Cap</label><div class="value">$' + ((d.marketCap/1e9)?.toFixed(1)||'--') + 'B</div></div>' +
+          '<div class="stat-item"><label>Position Value</label><div class="value highlight">$' + (shares * (d.price||0)).toLocaleString() + '</div></div>' +
+          '<div class="stat-item"><label>Prev Close</label><div class="value">$' + (d.previousClose?.toFixed(2)||'--') + '</div></div>';
+        
+        if (d.pressReleases?.length) {
+          const hasNew = d.pressReleases.some(p => (new Date() - new Date(p.attributes?.publishOn)) < 864e5);
           if (hasNew) {
             document.getElementById('alert-banner').style.display = 'flex';
-            document.getElementById('alert-title').textContent = 'New Press Release Today';
-            document.getElementById('alert-desc').textContent = data.pressReleases[0].attributes?.title;
+            document.getElementById('alert-title').textContent = '🚨 New Press Release';
+            document.getElementById('alert-desc').textContent = d.pressReleases[0].attributes?.title;
           }
-          
-          document.getElementById('press-releases').innerHTML = data.pressReleases.map(function(pr) {
-            var isNew = (new Date() - new Date(pr.attributes?.publishOn)) / (1000*60*60) < 24;
-            return '<div class="news-item ' + (isNew ? 'urgent' : '') + '">' +
-              '<div class="date">' + timeAgo(pr.attributes?.publishOn) + (isNew ? '<span class="tag new">NEW</span>' : '') + '</div>' +
-              '<a class="title" href="https://seekingalpha.com' + (pr.links?.self || '') + '" target="_blank">' +
-              (pr.attributes?.title || 'Untitled') + '</a></div>';
+          document.getElementById('press-releases').innerHTML = d.pressReleases.map(p => {
+            const isNew = (new Date() - new Date(p.attributes?.publishOn)) < 864e5;
+            return '<div class="news-item '+(isNew?'urgent':'')+'"><div class="date">' + timeAgo(p.attributes?.publishOn) + (isNew?'<span class="tag new">NEW</span>':'') + '</div><a class="title" href="https://seekingalpha.com'+(p.links?.self||'')+'" target="_blank">'+(p.attributes?.title||'')+'</a></div>';
           }).join('');
         }
         
-        // Transcripts
-        if (data.transcripts?.length > 0) {
-          document.getElementById('transcripts').innerHTML = data.transcripts.map(function(t) {
-            return '<div class="news-item"><div class="date">' + timeAgo(t.attributes?.publishOn) + 
-              '<span class="tag transcript">TRANSCRIPT</span></div>' +
-              '<a class="title" href="https://seekingalpha.com' + (t.links?.self || '') + '" target="_blank">' +
-              (t.attributes?.title || 'Untitled') + '</a></div>';
-          }).join('');
+        if (d.transcripts?.length) {
+          document.getElementById('transcripts').innerHTML = d.transcripts.map(t => '<div class="news-item"><div class="date">' + timeAgo(t.attributes?.publishOn) + '<span class="tag transcript">CALL</span></div><a class="title" href="https://seekingalpha.com'+(t.links?.self||'')+'" target="_blank">'+(t.attributes?.title||'')+'</a></div>').join('');
         }
         
-        // Articles
-        if (data.articles?.length > 0) {
-          document.getElementById('articles-list').innerHTML = data.articles.map(function(a) {
-            return '<div class="news-item"><div class="date">' + timeAgo(a.attributes?.publishOn) + '</div>' +
-              '<a class="title" href="https://seekingalpha.com' + (a.links?.self || '') + '" target="_blank">' +
-              (a.attributes?.title || 'Untitled') + '</a></div>';
-          }).join('');
+        if (d.articles?.length) {
+          document.getElementById('articles-list').innerHTML = d.articles.map(a => '<div class="news-item"><div class="date">' + timeAgo(a.attributes?.publishOn) + '</div><a class="title" href="https://seekingalpha.com'+(a.links?.self||'')+'" target="_blank">'+(a.attributes?.title||'')+'</a></div>').join('');
         }
-        
-      } catch (err) {
-        console.error('Error:', err);
-      }
+      } catch (e) { console.error(e); }
     }
     
-    document.querySelectorAll('.tab').forEach(function(tab) {
-      tab.addEventListener('click', function() {
-        document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
-        tab.classList.add('active');
-        currentMember = tab.dataset.member;
-        loadStockData('et');
-      });
-    });
+    document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      currentMember = t.dataset.member;
+      load('ET');
+    }));
     
-    loadStockData('et');
-    setInterval(function() { loadStockData('et'); }, 300000);
+    load('ET');
+    setInterval(() => load('ET'), 60000);
   </script>
 </body>
 </html>
