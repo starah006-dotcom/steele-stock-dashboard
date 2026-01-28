@@ -112,6 +112,23 @@
     .empty-state { text-align: center; padding: 60px 20px; color: #666; }
     .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
     
+    /* Powered by badge */
+    .powered-by { font-size: 10px; font-weight: normal; color: #666; margin-left: auto; }
+    
+    /* Alerts Row */
+    .alerts-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .alert-card { background: #1a1a3e; border-radius: 12px; padding: 16px; border: 1px solid #2a2a4a; display: flex; align-items: center; gap: 14px; }
+    .alert-card.earnings-alert { border-left: 3px solid #f59e0b; }
+    .alert-card.concentration-alert { border-left: 3px solid #ef4444; }
+    .alert-card.dividend-alert { border-left: 3px solid #10b981; }
+    .alert-icon { font-size: 24px; }
+    .alert-content { flex: 1; }
+    .alert-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #888; margin-bottom: 4px; }
+    .alert-detail { font-size: 14px; color: #fff; font-weight: 500; }
+    .alert-detail .warning { color: #f59e0b; }
+    .alert-detail .danger { color: #ef4444; }
+    .alert-detail .success { color: #10b981; }
+    
     /* Research Card */
     .research-card { border-color: #8b5cf6; }
     .research-card h3 { display: flex; justify-content: space-between; align-items: center; }
@@ -158,9 +175,34 @@
       
       <!-- AI Market Scan Summary -->
       <div class="ai-summary-card" id="ai-summary-card" style="display:none;">
-        <h3><span class="icon">🤖</span> AI Market Scan</h3>
+        <h3><span class="icon">🤖</span> AI Market Scan <span class="powered-by">Powered by Claude</span></h3>
         <div class="ai-summary-content" id="ai-summary-content">
           <div class="ai-loading"><span class="spinner"></span>Analyzing your holdings...</div>
+        </div>
+      </div>
+      
+      <!-- Earnings Calendar & Alerts -->
+      <div class="alerts-row" id="alerts-row" style="display:none;">
+        <div class="alert-card earnings-alert" id="earnings-alert">
+          <div class="alert-icon">📅</div>
+          <div class="alert-content">
+            <div class="alert-title">Upcoming Earnings</div>
+            <div class="alert-detail" id="earnings-detail">--</div>
+          </div>
+        </div>
+        <div class="alert-card concentration-alert" id="concentration-alert">
+          <div class="alert-icon">⚖️</div>
+          <div class="alert-content">
+            <div class="alert-title">Concentration Risk</div>
+            <div class="alert-detail" id="concentration-detail">--</div>
+          </div>
+        </div>
+        <div class="alert-card dividend-alert" id="dividend-alert">
+          <div class="alert-icon">💰</div>
+          <div class="alert-content">
+            <div class="alert-title">Next Dividend</div>
+            <div class="alert-detail" id="dividend-detail">--</div>
+          </div>
         </div>
       </div>
       
@@ -665,6 +707,48 @@
         </div>
       `;
       
+      // Update alerts row
+      document.getElementById('alerts-row').style.display = 'grid';
+      
+      // Earnings alert - find stocks with earnings in next 14 days
+      const earningsData = stockData.filter(s => {
+        if (!s.earningsDate) return false;
+        const days = daysUntil(s.earningsDate);
+        return days !== null && days >= 0 && days <= 14;
+      }).sort((a, b) => daysUntil(a.earningsDate) - daysUntil(b.earningsDate));
+      
+      if (earningsData.length) {
+        const next = earningsData[0];
+        const days = daysUntil(next.earningsDate);
+        document.getElementById('earnings-detail').innerHTML = `<span class="warning">${next.symbol}</span> reports in ${days} day${days !== 1 ? 's' : ''}` + 
+          (earningsData.length > 1 ? ` <span style="color:#666">(+${earningsData.length - 1} more)</span>` : '');
+      } else {
+        document.getElementById('earnings-detail').textContent = 'No earnings in next 2 weeks';
+      }
+      
+      // Concentration alert - check if any position is >20% of portfolio
+      const sortedByValue = [...stockData].sort((a, b) => b.value - a.value);
+      const topPosition = sortedByValue[0];
+      const topPct = totalValue > 0 ? (topPosition.value / totalValue) * 100 : 0;
+      const top3Pct = totalValue > 0 ? (sortedByValue.slice(0, 3).reduce((sum, s) => sum + s.value, 0) / totalValue) * 100 : 0;
+      
+      if (topPct > 25) {
+        document.getElementById('concentration-detail').innerHTML = `<span class="danger">${topPosition.symbol} is ${topPct.toFixed(0)}%</span> of portfolio`;
+      } else if (top3Pct > 60) {
+        document.getElementById('concentration-detail').innerHTML = `Top 3 positions = <span class="warning">${top3Pct.toFixed(0)}%</span>`;
+      } else {
+        document.getElementById('concentration-detail').innerHTML = `<span class="success">Well diversified</span> (top position ${topPct.toFixed(0)}%)`;
+      }
+      
+      // Dividend alert - next dividend payout
+      if (upcomingExDiv.length) {
+        const next = upcomingExDiv[0];
+        const divPayment = next.shares * ((next.dividendRate || 0) / 4);
+        document.getElementById('dividend-detail').innerHTML = `<span class="success">${next.symbol}</span> ex-div in ${next.exDivDays}d (~${formatCompact(divPayment)})`;
+      } else {
+        document.getElementById('dividend-detail').textContent = 'No ex-div dates in next 30 days';
+      }
+      
       // Render holdings table
       renderHoldings();
       
@@ -724,11 +808,32 @@
       }
     }
     
+    // Check if market is open (9:30am - 4pm ET, Mon-Fri)
+    function isMarketOpen() {
+      const now = new Date();
+      const et = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+      const day = et.getDay();
+      const hour = et.getHours();
+      const min = et.getMinutes();
+      const timeNum = hour * 100 + min;
+      return day >= 1 && day <= 5 && timeNum >= 930 && timeNum <= 1600;
+    }
+    
     // Initialize
     buildTabs();
     setupSorting();
     loadPortfolio();
-    setInterval(loadPortfolio, 120000);
+    
+    // Auto-refresh: 60s during market hours, 5min otherwise
+    setInterval(() => {
+      const interval = isMarketOpen() ? 60000 : 300000;
+      loadPortfolio();
+    }, isMarketOpen() ? 60000 : 300000);
+    
+    // Show market status
+    if (isMarketOpen()) {
+      document.querySelector('.header .subtitle').textContent = 'Real-time • Market Open 🟢';
+    }
   </script>
 </body>
 </html>
