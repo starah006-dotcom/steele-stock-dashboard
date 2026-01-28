@@ -13,7 +13,7 @@
     .header {
       background: linear-gradient(135deg, #1a1a3e 0%, #0f0f23 100%);
       padding: 20px 30px; border-bottom: 1px solid #2a2a4a;
-      display: flex; justify-content: space-between; align-items: center;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
     }
     .header h1 { font-size: 24px; font-weight: 600; color: #fff; }
     .header .subtitle { color: #888; font-size: 14px; margin-top: 4px; }
@@ -24,11 +24,14 @@
       background: #12122a; border-bottom: 1px solid #2a2a4a; overflow-x: auto;
     }
     .tab {
-      padding: 10px 20px; background: transparent; border: 1px solid #3a3a5a;
+      padding: 8px 16px; background: transparent; border: 1px solid #3a3a5a;
       border-radius: 8px; color: #888; cursor: pointer; white-space: nowrap;
+      font-size: 13px; transition: all 0.2s;
     }
     .tab:hover { background: #1a1a3e; color: #fff; }
     .tab.active { background: #2563eb; border-color: #2563eb; color: #fff; }
+    .tab.parent { border-color: #f59e0b44; }
+    .tab.parent.active { background: #f59e0b; border-color: #f59e0b; }
     
     .main { padding: 30px; max-width: 1400px; margin: 0 auto; }
     
@@ -56,7 +59,7 @@
     .dividend-item .value.highlight { color: #10b981; }
     .dividend-item .value.warning { color: #f59e0b; }
     
-    .news-list { display: flex; flex-direction: column; gap: 12px; }
+    .news-list { display: flex; flex-direction: column; gap: 12px; max-height: 300px; overflow-y: auto; }
     .news-item { padding-bottom: 12px; border-bottom: 1px solid #2a2a4a; }
     .news-item:last-child { border-bottom: none; padding-bottom: 0; }
     .news-item .date { font-size: 11px; color: #666; margin-bottom: 4px; }
@@ -86,11 +89,13 @@
     .alert-banner .desc { font-size: 13px; color: #a7f3d0; margin-top: 2px; }
     
     .loading { color: #888; font-style: italic; padding: 20px; text-align: center; }
+    .member-name { font-size: 12px; color: #666; margin-bottom: 20px; }
     
     @media (max-width: 768px) {
-      .header { flex-direction: column; align-items: flex-start; gap: 10px; }
-      .stock-header { flex-direction: column; }
+      .header { flex-direction: column; align-items: flex-start; }
       .main { padding: 15px; }
+      .tabs { padding: 10px 15px; }
+      .tab { padding: 6px 12px; font-size: 12px; }
     }
   </style>
 </head>
@@ -104,10 +109,20 @@
   </div>
   
   <div class="tabs">
-    <div class="tab active" data-tab="dad">🎯 Dad's Portfolio</div>
-    <div class="tab" data-tab="star">⭐ Star</div>
-    <div class="tab" data-tab="jet">🚀 Jet</div>
-    <div class="tab" data-tab="jacqueline">💎 Jacqueline</div>
+    <div class="tab parent active" data-member="peter">👨‍💼 Peter</div>
+    <div class="tab parent" data-member="sherry">👩‍💼 Sherry</div>
+    <div class="tab" data-member="sky">🌟 Sky</div>
+    <div class="tab" data-member="star">⭐ Star</div>
+    <div class="tab" data-member="jet">✈️ Jet</div>
+    <div class="tab" data-member="everly">🎀 Everly</div>
+    <div class="tab" data-member="leo">🦁 Leo</div>
+    <div class="tab" data-member="autumn">🍂 Autumn</div>
+    <div class="tab" data-member="ace">🃏 Ace</div>
+    <div class="tab" data-member="stryker">⚡ Stryker</div>
+    <div class="tab" data-member="maverick">🔥 Maverick</div>
+    <div class="tab" data-member="cannon">💥 Cannon</div>
+    <div class="tab" data-member="missile">🚀 Missile</div>
+    <div class="tab" data-member="all" style="margin-left: auto; background: #1a1a3e;">📊 All</div>
   </div>
   
   <div class="main">
@@ -118,6 +133,8 @@
         <div class="desc" id="alert-desc"></div>
       </div>
     </div>
+    
+    <div class="member-name" id="member-name">Viewing: Peter's Portfolio</div>
     
     <div class="stock-header">
       <div class="stock-info">
@@ -158,70 +175,70 @@
   </div>
 
   <script>
-    const SHARES_HELD = 54000;
+    // Family member portfolios (to be populated with actual holdings)
+    const PORTFOLIOS = {
+      peter: { name: 'Peter', shares: { ET: 54000 }, primary: 'ET' },
+      sherry: { name: 'Sherry', shares: { ET: 0 }, primary: 'ET' },
+      sky: { name: 'Sky', shares: { ET: 0 }, primary: 'ET' },
+      star: { name: 'Star', shares: { ET: 1000 }, primary: 'ET' },
+      jet: { name: 'Jet', shares: { ET: 0 }, primary: 'ET' },
+      everly: { name: 'Everly', shares: { ET: 0 }, primary: 'ET' },
+      leo: { name: 'Leo', shares: { ET: 0 }, primary: 'ET' },
+      autumn: { name: 'Autumn', shares: { ET: 0 }, primary: 'ET' },
+      ace: { name: 'Ace', shares: { ET: 0 }, primary: 'ET' },
+      stryker: { name: 'Stryker', shares: { ET: 0 }, primary: 'ET' },
+      maverick: { name: 'Maverick', shares: { ET: 0 }, primary: 'ET' },
+      cannon: { name: 'Cannon', shares: { ET: 0 }, primary: 'ET' },
+      missile: { name: 'Missile', shares: { ET: 0 }, primary: 'ET' },
+    };
+    
+    let currentMember = 'peter';
     
     function timeAgo(dateStr) {
       const date = new Date(dateStr);
       const now = new Date();
       const hours = Math.floor((now - date) / (1000 * 60 * 60));
       if (hours < 1) return 'Just now';
-      if (hours < 24) return `${hours}h ago`;
+      if (hours < 24) return hours + 'h ago';
       const days = Math.floor(hours / 24);
       if (days === 1) return 'Yesterday';
-      if (days < 7) return `${days}d ago`;
+      if (days < 7) return days + 'd ago';
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
     
     async function loadStockData(symbol = 'et') {
+      const member = PORTFOLIOS[currentMember];
+      const sharesHeld = member?.shares?.[symbol.toUpperCase()] || 0;
+      
+      document.getElementById('member-name').textContent = 'Viewing: ' + member.name + "'s Portfolio";
+      
       try {
-        const res = await fetch(`/api/stock/${symbol}`);
+        const res = await fetch('/api/stock/' + symbol);
         const data = await res.json();
         
-        // Header
         document.getElementById('stock-name').textContent = 
-          `${data.info?.attributes?.name || symbol.toUpperCase()} - ${data.info?.attributes?.companyName || ''}`;
+          (data.info?.attributes?.name || symbol.toUpperCase()) + ' - ' + (data.info?.attributes?.companyName || '');
         document.getElementById('company-name').textContent = 
-          `${data.info?.attributes?.exchange || ''} · ${SHARES_HELD.toLocaleString()} shares`;
+          (data.info?.attributes?.exchange || '') + ' · ' + sharesHeld.toLocaleString() + ' shares';
         document.getElementById('update-time').textContent = 
           new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
         
-        // Dividend
         const divRate = data.dividendRate || 1.33;
         const quarterlyDiv = divRate / 4;
-        const quarterlyPayment = quarterlyDiv * SHARES_HELD;
+        const quarterlyPayment = quarterlyDiv * sharesHeld;
         
-        document.getElementById('dividend-info').innerHTML = `
-          <div class="dividend-item">
-            <label>Annual Rate</label>
-            <div class="value highlight">$${divRate.toFixed(2)}</div>
-          </div>
-          <div class="dividend-item">
-            <label>Quarterly</label>
-            <div class="value highlight">$${quarterlyDiv.toFixed(4)}</div>
-          </div>
-          <div class="dividend-item">
-            <label>Ex-Div Date</label>
-            <div class="value warning">Feb 6</div>
-          </div>
-          <div class="dividend-item">
-            <label>Pay Date</label>
-            <div class="value">Feb 20</div>
-          </div>
-          <div class="dividend-item">
-            <label>Your Quarterly</label>
-            <div class="value highlight">$${quarterlyPayment.toLocaleString()}</div>
-          </div>
-          <div class="dividend-item">
-            <label>Your Annual</label>
-            <div class="value highlight">$${(divRate * SHARES_HELD).toLocaleString()}</div>
-          </div>
-        `;
+        document.getElementById('dividend-info').innerHTML = 
+          '<div class="dividend-item"><label>Annual Rate</label><div class="value highlight">$' + divRate.toFixed(2) + '</div></div>' +
+          '<div class="dividend-item"><label>Quarterly</label><div class="value highlight">$' + quarterlyDiv.toFixed(4) + '</div></div>' +
+          '<div class="dividend-item"><label>Ex-Div Date</label><div class="value warning">Feb 6</div></div>' +
+          '<div class="dividend-item"><label>Pay Date</label><div class="value">Feb 20</div></div>' +
+          '<div class="dividend-item"><label>Your Quarterly</label><div class="value highlight">$' + quarterlyPayment.toLocaleString() + '</div></div>' +
+          '<div class="dividend-item"><label>Your Annual</label><div class="value highlight">$' + (divRate * sharesHeld).toLocaleString() + '</div></div>';
         
         // Press Releases
         if (data.pressReleases?.length > 0) {
-          const hasNew = data.pressReleases.some(pr => {
-            const hours = (new Date() - new Date(pr.attributes?.publishOn)) / (1000*60*60);
-            return hours < 24;
+          const hasNew = data.pressReleases.some(function(pr) {
+            return (new Date() - new Date(pr.attributes?.publishOn)) / (1000*60*60) < 24;
           });
           
           if (hasNew) {
@@ -230,41 +247,32 @@
             document.getElementById('alert-desc').textContent = data.pressReleases[0].attributes?.title;
           }
           
-          document.getElementById('press-releases').innerHTML = data.pressReleases.map(pr => {
-            const isNew = (new Date() - new Date(pr.attributes?.publishOn)) / (1000*60*60) < 24;
-            return `
-              <div class="news-item ${isNew ? 'urgent' : ''}">
-                <div class="date">${timeAgo(pr.attributes?.publishOn)}${isNew ? '<span class="tag new">NEW</span>' : ''}</div>
-                <a class="title" href="https://seekingalpha.com${pr.links?.self || ''}" target="_blank">
-                  ${pr.attributes?.title || 'Untitled'}
-                </a>
-              </div>
-            `;
+          document.getElementById('press-releases').innerHTML = data.pressReleases.map(function(pr) {
+            var isNew = (new Date() - new Date(pr.attributes?.publishOn)) / (1000*60*60) < 24;
+            return '<div class="news-item ' + (isNew ? 'urgent' : '') + '">' +
+              '<div class="date">' + timeAgo(pr.attributes?.publishOn) + (isNew ? '<span class="tag new">NEW</span>' : '') + '</div>' +
+              '<a class="title" href="https://seekingalpha.com' + (pr.links?.self || '') + '" target="_blank">' +
+              (pr.attributes?.title || 'Untitled') + '</a></div>';
           }).join('');
         }
         
         // Transcripts
         if (data.transcripts?.length > 0) {
-          document.getElementById('transcripts').innerHTML = data.transcripts.map(t => `
-            <div class="news-item">
-              <div class="date">${timeAgo(t.attributes?.publishOn)}<span class="tag transcript">TRANSCRIPT</span></div>
-              <a class="title" href="https://seekingalpha.com${t.links?.self || ''}" target="_blank">
-                ${t.attributes?.title || 'Untitled'}
-              </a>
-            </div>
-          `).join('');
+          document.getElementById('transcripts').innerHTML = data.transcripts.map(function(t) {
+            return '<div class="news-item"><div class="date">' + timeAgo(t.attributes?.publishOn) + 
+              '<span class="tag transcript">TRANSCRIPT</span></div>' +
+              '<a class="title" href="https://seekingalpha.com' + (t.links?.self || '') + '" target="_blank">' +
+              (t.attributes?.title || 'Untitled') + '</a></div>';
+          }).join('');
         }
         
         // Articles
         if (data.articles?.length > 0) {
-          document.getElementById('articles-list').innerHTML = data.articles.map(a => `
-            <div class="news-item">
-              <div class="date">${timeAgo(a.attributes?.publishOn)}</div>
-              <a class="title" href="https://seekingalpha.com${a.links?.self || ''}" target="_blank">
-                ${a.attributes?.title || 'Untitled'}
-              </a>
-            </div>
-          `).join('');
+          document.getElementById('articles-list').innerHTML = data.articles.map(function(a) {
+            return '<div class="news-item"><div class="date">' + timeAgo(a.attributes?.publishOn) + '</div>' +
+              '<a class="title" href="https://seekingalpha.com' + (a.links?.self || '') + '" target="_blank">' +
+              (a.attributes?.title || 'Untitled') + '</a></div>';
+          }).join('');
         }
         
       } catch (err) {
@@ -272,15 +280,17 @@
       }
     }
     
-    document.querySelectorAll('.tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
         tab.classList.add('active');
+        currentMember = tab.dataset.member;
+        loadStockData('et');
       });
     });
     
     loadStockData('et');
-    setInterval(() => loadStockData('et'), 300000); // Refresh every 5 min
+    setInterval(function() { loadStockData('et'); }, 300000);
   </script>
 </body>
 </html>
