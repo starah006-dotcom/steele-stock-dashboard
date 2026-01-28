@@ -9,6 +9,7 @@ const SITE_PASSWORD = process.env.SITE_PASSWORD || 'Steele813';
 
 // API Keys
 const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY || 'd32c6f4d8amsh19566314d24b4e1p1fe082jsn8cb737a081b1';
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
 const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY || '';
 const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY || '';
@@ -167,13 +168,13 @@ app.get('/api/stock/:symbol', async (req, res) => {
   }
 });
 
-// AI Summary endpoint using OpenAI
+// AI Summary endpoint using Claude (primary) or OpenAI (fallback)
 app.post('/api/ai-summary', async (req, res) => {
   try {
     const { stocks } = req.body;
     
-    if (!OPENAI_API_KEY) {
-      console.log('No OpenAI key configured');
+    if (!ANTHROPIC_API_KEY && !OPENAI_API_KEY) {
+      console.log('No AI API key configured');
       return res.json({ summary: null });
     }
     
@@ -209,28 +210,64 @@ Be specific and actionable. No generic advice.
 Portfolio (${stocks.length} positions):
 ${stockSummaries}`;
 
-    const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 1000,
-        temperature: 0.7
-      })
-    });
+    let summary = null;
     
-    const data = await openaiRes.json();
-    
-    if (data.error) {
-      console.error('OpenAI error:', data.error);
-      return res.json({ summary: null, error: data.error.message });
+    // Try Claude first (better quality)
+    if (ANTHROPIC_API_KEY) {
+      try {
+        const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': ANTHROPIC_API_KEY,
+            'anthropic-version': '2023-06-01'
+          },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 1024,
+            messages: [{ role: 'user', content: prompt }]
+          })
+        });
+        
+        const claudeData = await claudeRes.json();
+        
+        if (claudeData.content?.[0]?.text) {
+          summary = claudeData.content[0].text;
+          console.log('AI Summary generated via Claude');
+        } else if (claudeData.error) {
+          console.error('Claude error:', claudeData.error);
+        }
+      } catch (claudeErr) {
+        console.error('Claude request failed:', claudeErr.message);
+      }
     }
     
-    const summary = data.choices?.[0]?.message?.content || null;
+    // Fallback to OpenAI if Claude failed
+    if (!summary && OPENAI_API_KEY) {
+      const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 1000,
+          temperature: 0.7
+        })
+      });
+      
+      const openaiData = await openaiRes.json();
+      
+      if (openaiData.choices?.[0]?.message?.content) {
+        summary = openaiData.choices[0].message.content;
+        console.log('AI Summary generated via OpenAI');
+      } else if (openaiData.error) {
+        console.error('OpenAI error:', openaiData.error);
+      }
+    }
+    
     res.json({ summary });
   } catch (err) {
     console.error('AI Summary Error:', err);
@@ -316,5 +353,5 @@ app.get('/api/market-news', async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Steele Stock Dashboard running on port ${PORT}`);
-  console.log(`APIs configured: OpenAI=${!!OPENAI_API_KEY}, Finnhub=${!!FINNHUB_API_KEY}, Perplexity=${!!PERPLEXITY_API_KEY}`);
+  console.log(`APIs configured: Claude=${!!ANTHROPIC_API_KEY}, OpenAI=${!!OPENAI_API_KEY}, Finnhub=${!!FINNHUB_API_KEY}, Perplexity=${!!PERPLEXITY_API_KEY}`);
 });
