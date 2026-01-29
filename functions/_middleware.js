@@ -55,7 +55,15 @@ export async function onRequest(context) {
   // Check auth cookie
   const cookie = request.headers.get('Cookie') || '';
   if (cookie.includes('auth=authenticated')) {
-    return next();
+    const response = await next();
+    // Add no-cache headers to prevent stale content
+    const newHeaders = new Headers(response.headers);
+    newHeaders.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    newHeaders.set('Pragma', 'no-cache');
+    return new Response(response.body, {
+      status: response.status,
+      headers: newHeaders
+    });
   }
   
   // Allow API calls with valid auth (for AJAX requests)
