@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Stock Dashboard - Steele Family</title>
-  <!-- Build: 2026-01-28-v3 -->
+  <!-- Build: 2026-01-30-v6-final-fix -->
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f0f23; color: #e0e0e0; min-height: 100vh; }
@@ -67,6 +67,17 @@
     .ai-loading { text-align: center; padding: 40px; color: #666; }
     .ai-loading .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid #3b82f6; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 10px; }
     @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    
+    /* Skeleton loading styles */
+    .skeleton { background: linear-gradient(90deg, #1a1a3e 25%, #2a2a4a 50%, #1a1a3e 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; }
+    .skeleton-card { background: #1a1a3e; border-radius: 12px; padding: 18px; border: 1px solid #2a2a4a; }
+    .skeleton-text { height: 14px; margin-bottom: 8px; }
+    .skeleton-text.lg { height: 26px; width: 60%; }
+    .skeleton-text.sm { height: 12px; width: 40%; }
+    .skeleton-row { display: flex; gap: 12px; padding: 12px; border-bottom: 1px solid #2a2a4a22; }
+    .skeleton-row > div { flex: 1; }
+    .skeleton-cell { height: 16px; }
 
     /* Stock Detail Modal */
     .stock-detail { display: none; }
@@ -177,7 +188,10 @@
       <h1>📊 Steele Family Portfolio</h1>
       <div class="subtitle">Real-time Yahoo Finance + Seeking Alpha + AI Analysis</div>
     </div>
-    <div class="last-updated">Updated: <span id="update-time">--</span></div>
+    <div class="last-updated">
+      Updated: <span id="update-time">--</span>
+      <button onclick="loadPortfolio()" style="margin-left:12px;padding:6px 12px;background:#2563eb;border:none;border-radius:6px;color:#fff;cursor:pointer;font-size:12px;">🔄 Refresh</button>
+    </div>
   </div>
 
   <div class="tabs" id="tabs"></div>
@@ -296,16 +310,16 @@
         </div>
       </div>
       
-      <!-- X/Twitter Section -->
+      <!-- Social Sentiment Section -->
       <div class="card" style="margin-top: 20px;">
         <h3>
-          <span><span class="icon">𝕏</span> Social Sentiment</span>
-          <button class="research-btn" id="twitter-btn" onclick="loadTwitterFeed()" style="font-size:11px;padding:4px 10px;">
-            Load X Posts
+          <span><span class="icon">📊</span> Social Sentiment</span>
+          <button class="research-btn" id="sentiment-btn" onclick="loadSocialSentiment()" style="font-size:11px;padding:4px 10px;">
+            Analyze Sentiment
           </button>
         </h3>
-        <div id="twitter-feed" class="news-list">
-          <div style="color:#666;text-align:center;padding:10px;">Click to search recent posts about this stock on X</div>
+        <div id="social-sentiment">
+          <div style="color:#666;text-align:center;padding:10px;">Click to analyze social sentiment from credible financial sources</div>
         </div>
       </div>
 
@@ -471,24 +485,77 @@
       });
     }
 
+    // Batch fetch multiple stocks in one request - much faster!
+    async function batchFetchStocks(symbols) {
+      const cacheAge = 30000; // 30s cache
+      const uncached = symbols.filter(s => !stockCache[s] || (Date.now() - stockCache[s].fetchedAt) > cacheAge);
+      
+      if (uncached.length > 0) {
+        try {
+          const res = await fetch('/api/stocks?symbols=' + uncached.join(','), { credentials: 'same-origin' });
+          const data = await res.json();
+          if (data.stocks) {
+            Object.entries(data.stocks).forEach(([symbol, stockData]) => {
+              stockCache[symbol] = { data: stockData, fetchedAt: Date.now() };
+            });
+          }
+        } catch (e) {
+          console.error('Batch fetch failed, falling back to individual', e);
+          await Promise.all(uncached.map(s => fetchStock(s)));
+        }
+      }
+      
+      return symbols.map(s => stockCache[s]?.data || {});
+    }
+
+    // Individual fetch for stock detail (includes Seeking Alpha data)
     async function fetchStock(symbol) {
-      // Reduced cache to 10s for debugging
-      if (stockCache[symbol] && (Date.now() - stockCache[symbol].fetchedAt) < 10000) {
+      // 30s cache for basic data
+      if (stockCache[symbol] && (Date.now() - stockCache[symbol].fetchedAt) < 30000) {
         return stockCache[symbol].data;
       }
       try {
-        // Add cache-busting param to prevent browser caching
-        const res = await fetch('/api/stock/' + symbol + '?_t=' + Date.now(), {
-          cache: 'no-store'
-        });
+        const res = await fetch('/api/stock/' + symbol, { credentials: 'same-origin' });
         const data = await res.json();
-        console.log('Fetched fresh data for', symbol, '- articles:', data.articles?.length, 'press:', data.pressReleases?.length);
         stockCache[symbol] = { data, fetchedAt: Date.now() };
         return data;
       } catch (e) {
         console.error('Failed to fetch', symbol, e);
         return {};
       }
+    }
+    
+    // Render skeleton loading UI
+    function renderSkeletons(count) {
+      // Summary skeleton
+      document.getElementById('portfolio-summary').innerHTML = Array(5).fill(`
+        <div class="skeleton-card">
+          <div class="skeleton skeleton-text sm"></div>
+          <div class="skeleton skeleton-text lg"></div>
+          <div class="skeleton skeleton-text sm"></div>
+        </div>
+      `).join('');
+      
+      // Table skeleton
+      document.getElementById('holdings-body').innerHTML = Array(count).fill(`
+        <tr>
+          <td><div class="skeleton skeleton-text" style="width:60px;height:16px;margin-bottom:4px"></div><div class="skeleton skeleton-text" style="width:100px;height:10px"></div></td>
+          <td class="right"><div class="skeleton skeleton-text" style="width:50px;height:16px;margin-left:auto"></div></td>
+          <td class="right"><div class="skeleton skeleton-text" style="width:40px;height:16px;margin-left:auto"></div></td>
+          <td class="right"><div class="skeleton skeleton-text" style="width:50px;height:16px;margin-left:auto"></div></td>
+          <td class="right"><div class="skeleton skeleton-text" style="width:50px;height:16px;margin-left:auto"></div></td>
+          <td class="right"><div class="skeleton skeleton-text" style="width:40px;height:16px;margin-left:auto"></div></td>
+          <td class="right"><div class="skeleton skeleton-text" style="width:35px;height:16px;margin-left:auto"></div></td>
+          <td class="right hide-mobile"><div class="skeleton skeleton-text" style="width:45px;height:16px;margin-left:auto"></div></td>
+          <td class="right hide-mobile"><div class="skeleton skeleton-text" style="width:45px;height:16px;margin-left:auto"></div></td>
+        </tr>
+      `).join('');
+      
+      // Alerts skeleton
+      document.getElementById('alerts-row').style.display = 'grid';
+      document.getElementById('earnings-detail').innerHTML = '<div class="skeleton skeleton-text" style="width:120px;height:14px"></div>';
+      document.getElementById('concentration-detail').innerHTML = '<div class="skeleton skeleton-text" style="width:100px;height:14px"></div>';
+      document.getElementById('dividend-detail').innerHTML = '<div class="skeleton skeleton-text" style="width:110px;height:14px"></div>';
     }
 
     function showPortfolio() {
@@ -555,7 +622,7 @@
         if (d.pressReleases?.length) {
           document.getElementById('detail-press').innerHTML = d.pressReleases.map(p => {
             const isNew = (new Date() - new Date(p.attributes?.publishOn)) < 864e5;
-            return `<div class="news-item"><div class="date">${timeAgo(p.attributes?.publishOn)}${isNew?'<span class="tag new">NEW</span>':''}</div><a class="title" href="https://seekingalpha.com${p.links?.self||''}" target="_blank">${p.attributes?.title||''}</a></div>`;
+            return `<div class="news-item"><div class="date">${timeAgo(p.attributes?.publishOn)}${isNew?'<span class="tag new">NEW</span>':''}</div><a class="title" href="${p.links?.self||'#'}" target="_blank">${p.attributes?.title||''}</a></div>`;
           }).join('');
         } else {
           document.getElementById('detail-press').innerHTML = '<div style="color:#666">No recent releases</div>';
@@ -566,7 +633,7 @@
       try {
         if (d.transcripts?.length) {
           document.getElementById('detail-transcripts').innerHTML = d.transcripts.map(t =>
-            `<div class="news-item"><div class="date">${timeAgo(t.attributes?.publishOn)}<span class="tag transcript">CALL</span></div><a class="title" href="https://seekingalpha.com${t.links?.self||''}" target="_blank">${t.attributes?.title||''}</a></div>`
+            `<div class="news-item"><div class="date">${timeAgo(t.attributes?.publishOn)}<span class="tag transcript">CALL</span></div><a class="title" href="${t.links?.self||'#'}" target="_blank">${t.attributes?.title||''}</a></div>`
           ).join('');
         } else {
           document.getElementById('detail-transcripts').innerHTML = '<div style="color:#666">No recent calls</div>';
@@ -580,7 +647,7 @@
             const sentiment = detectSentiment(a.attributes?.title || '');
             const sentimentClass = sentiment !== 'neutral' ? sentiment : '';
             const sentimentTag = sentiment !== 'neutral' ? `<span class="tag ${sentiment}">${sentiment.toUpperCase()}</span>` : '';
-            return `<div class="news-item ${sentimentClass}"><div class="date">${timeAgo(a.attributes?.publishOn)}${sentimentTag}</div><a class="title" href="https://seekingalpha.com${a.links?.self||''}" target="_blank">${a.attributes?.title||''}</a></div>`;
+            return `<div class="news-item ${sentimentClass}"><div class="date">${timeAgo(a.attributes?.publishOn)}${sentimentTag}</div><a class="title" href="${a.links?.self||'#'}" target="_blank">${a.attributes?.title||''}</a></div>`;
           }).join('');
         } else {
           document.getElementById('detail-articles').innerHTML = '<div style="color:#666">No recent analysis</div>';
@@ -643,6 +710,10 @@
         }
       } catch(e) { console.error('Filings render error:', e); document.getElementById('detail-filings').innerHTML = '<div style="color:#f00">Error: '+e.message+'</div>'; }
 
+      // Reset social sentiment section
+      document.getElementById('social-sentiment').innerHTML = '<div style="color:#666;text-align:center;padding:10px;">Click to analyze social sentiment from credible financial sources</div>';
+      document.getElementById('sentiment-btn').disabled = false;
+
       // Reset research section
       currentDetailSymbol = symbol;
       document.getElementById('research-content').innerHTML = '<div style="color:#666;text-align:center;padding:20px;">Click the button above to fetch real-time research from Perplexity AI</div>';
@@ -691,14 +762,14 @@
       btn.classList.remove('loading');
     }
 
-    async function loadTwitterFeed() {
+    async function loadSocialSentiment() {
       if (!currentDetailSymbol) return;
       
-      const btn = document.getElementById('twitter-btn');
-      const feed = document.getElementById('twitter-feed');
+      const btn = document.getElementById('sentiment-btn');
+      const content = document.getElementById('social-sentiment');
       
       btn.disabled = true;
-      feed.innerHTML = '<div class="ai-loading"><span class="spinner"></span>Searching X for $' + currentDetailSymbol + '...</div>';
+      content.innerHTML = '<div class="ai-loading"><span class="spinner"></span>Analyzing sentiment from credible sources...</div>';
       
       try {
         const res = await fetch('/api/research', {
@@ -706,7 +777,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             symbol: currentDetailSymbol,
-            task: 'twitter_sentiment'
+            task: 'social_sentiment'
           })
         });
         const data = await res.json();
@@ -718,12 +789,12 @@
             .replace(/\n- /g, '</p><ul><li>')
             .replace(/^/, '<p>')
             .replace(/$/, '</p>');
-          feed.innerHTML = `<div class="research-content" style="padding:0;max-height:300px;overflow-y:auto;">${html}</div>`;
+          content.innerHTML = `<div class="research-content" style="padding:0;max-height:300px;overflow-y:auto;">${html}</div>`;
         } else {
-          feed.innerHTML = '<div style="color:#666;text-align:center;padding:10px;">Could not fetch X data</div>';
+          content.innerHTML = '<div style="color:#666;text-align:center;padding:10px;">Could not analyze sentiment</div>';
         }
       } catch (err) {
-        feed.innerHTML = '<div style="color:#ef4444;text-align:center;padding:10px;">Error: ' + err.message + '</div>';
+        content.innerHTML = '<div style="color:#ef4444;text-align:center;padding:10px;">Error: ' + err.message + '</div>';
       }
       
       btn.disabled = false;
@@ -732,40 +803,67 @@
     async function summarizeFiling(url, formType) {
       const filingsEl = document.getElementById('detail-filings');
       const originalContent = filingsEl.innerHTML;
+      window.originalFilings = originalContent;
 
-      // Show loading state
-      filingsEl.innerHTML = `<div class="ai-loading"><span class="spinner"></span>Summarizing ${formType} filing with AI...</div>`;
+      // Show loading state with more detail
+      filingsEl.innerHTML = `
+        <div class="ai-loading">
+          <span class="spinner"></span>
+          <div style="margin-top:8px;">Analyzing ${formType} filing...</div>
+          <div style="font-size:11px;color:#666;margin-top:4px;">Fetching document from SEC EDGAR, extracting content, running AI analysis</div>
+        </div>`;
 
       try {
-        const res = await fetch('/api/research', {
+        const res = await fetch('/api/summarize-filing', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            symbol: currentDetailSymbol,
             filingUrl: url,
-            filingType: formType,
-            task: 'summarize_filing'
+            formType: formType,
+            symbol: currentDetailSymbol
           })
         });
         const data = await res.json();
 
-        if (data.research) {
-          let html = data.research
+        if (data.error) {
+          filingsEl.innerHTML = originalContent;
+          alert('Error: ' + data.error);
+          return;
+        }
+
+        if (data.summary) {
+          // Convert markdown to HTML
+          let html = data.summary
+            // Headers
+            .replace(/^## (.*$)/gm, '<h3 style="color:#60a5fa;margin:16px 0 8px;font-size:14px;">$1</h3>')
+            .replace(/^### (.*$)/gm, '<h4 style="color:#888;margin:12px 0 6px;font-size:13px;">$1</h4>')
+            // Bold
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\n\n/g, '</p><p>')
-            .replace(/\n- /g, '</p><ul><li>')
-            .replace(/^/, '<p>')
-            .replace(/$/, '</p>');
+            // Bullet points
+            .replace(/^- (.*$)/gm, '<li style="margin-left:16px;margin-bottom:4px;">$1</li>')
+            // Paragraphs
+            .replace(/\n\n/g, '</p><p style="margin:8px 0;line-height:1.5;">')
+            .replace(/\n/g, '<br>');
+          
+          // Wrap in paragraph tags
+          html = '<p style="margin:8px 0;line-height:1.5;">' + html + '</p>';
+          
+          // Clean up list items (wrap consecutive li's in ul)
+          html = html.replace(/(<li[^>]*>.*?<\/li>\s*)+/g, '<ul style="margin:8px 0;padding-left:8px;">$&</ul>');
+          
+          const charInfo = data.filingLength ? `<span style="font-size:10px;color:#444;margin-left:8px;">(analyzed ${(data.filingLength/1000).toFixed(0)}k chars)</span>` : '';
+          
           filingsEl.innerHTML = `
-            <div style="margin-bottom:12px;">
+            <div style="margin-bottom:12px;display:flex;align-items:center;gap:8px;">
               <button onclick="document.getElementById('detail-filings').innerHTML = window.originalFilings" style="background:#2a2a4a;border:none;color:#888;padding:6px 12px;border-radius:4px;cursor:pointer;font-size:12px;">← Back to filings</button>
+              <span style="font-size:12px;color:#60a5fa;">${formType} Analysis</span>
+              ${charInfo}
             </div>
-            <div class="research-content" style="padding:0;">${html}</div>
+            <div class="research-content" style="padding:0;font-size:13px;color:#ccc;">${html}</div>
           `;
-          window.originalFilings = originalContent;
         } else {
           filingsEl.innerHTML = originalContent;
-          alert('Could not summarize filing. Try again later.');
+          alert('Could not summarize filing. The document may not be accessible or in an unsupported format.');
         }
       } catch (err) {
         filingsEl.innerHTML = originalContent;
@@ -818,6 +916,7 @@
       if (!member.holdings.length) {
         document.getElementById('portfolio-summary').innerHTML = '';
         document.getElementById('ai-summary-card').style.display = 'none';
+        document.getElementById('alerts-row').style.display = 'none';
         document.getElementById('holdings-body').innerHTML = `
           <tr><td colspan="9" class="empty-state">
             <div class="icon">📭</div>
@@ -827,32 +926,38 @@
         return;
       }
 
+      // 🚀 IMMEDIATELY show skeleton loading UI
+      renderSkeletons(member.holdings.length);
+      
       // Show AI card with loading
       document.getElementById('ai-summary-card').style.display = 'block';
       document.getElementById('ai-summary-content').innerHTML = '<div class="ai-loading"><span class="spinner"></span>Analyzing your holdings...</div>';
 
-      // Fetch all stock data
-      const stockData = await Promise.all(
-        member.holdings.map(h => fetchStock(h.symbol).then(d => {
-          const value = h.shares * (d.price || 0);
-          const cost = h.shares * h.costBasis;
-          const gain = value - cost;
-          const gainPct = cost > 0 ? (gain / cost) * 100 : 0;
-          const annualDiv = h.shares * (d.dividendRate || 0);
-          const exDivDays = daysUntil(d.exDividendDate);
-          return {
-            ...h,
-            ...d,
-            value,
-            gain,
-            gainPct,
-            yield: d.dividendYield || 0,
-            annualDiv,
-            exDivDate: formatDate(d.exDividendDate),
-            exDivDays
-          };
-        }))
-      );
+      // 🚀 BATCH fetch all stocks in ONE request instead of N requests
+      const symbols = member.holdings.map(h => h.symbol);
+      const batchData = await batchFetchStocks(symbols);
+      
+      // Map the batch results to holdings
+      const stockData = member.holdings.map((h, i) => {
+        const d = batchData[i] || {};
+        const value = h.shares * (d.price || 0);
+        const cost = h.shares * h.costBasis;
+        const gain = value - cost;
+        const gainPct = cost > 0 ? (gain / cost) * 100 : 0;
+        const annualDiv = h.shares * (d.dividendRate || 0);
+        const exDivDays = daysUntil(d.exDividendDate);
+        return {
+          ...h,
+          ...d,
+          value,
+          gain,
+          gainPct,
+          yield: d.dividendYield || 0,
+          annualDiv,
+          exDivDate: formatDate(d.exDividendDate),
+          exDivDays
+        };
+      });
 
       currentStockData = stockData;
 
@@ -1023,11 +1128,11 @@
     setupSorting();
     loadPortfolio();
 
-    // Auto-refresh: 60s during market hours, 5min otherwise
-    setInterval(() => {
-      const interval = isMarketOpen() ? 60000 : 300000;
-      loadPortfolio();
-    }, isMarketOpen() ? 60000 : 300000);
+    // Auto-refresh disabled - manual refresh only
+    // setInterval(() => {
+    //   const interval = isMarketOpen() ? 60000 : 300000;
+    //   loadPortfolio();
+    // }, isMarketOpen() ? 60000 : 300000);
 
     // Show market status
     if (isMarketOpen()) {

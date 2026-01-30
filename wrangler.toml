@@ -2,7 +2,4 @@ name = "steele-stocks"
 compatibility_date = "2024-01-01"
 pages_build_output_dir = "."
 
-[vars]
-FINNHUB_API_KEY = "d5sn3dhr01qmiccas02gd5sn3dhr01qmiccas030"
-RAPIDAPI_KEY = "d32c6f4d8amsh19566314d24b4e1p1fe082jsn8cb737a081b1"
-SITE_PASSWORD = "Steele813"
+# API keys stored as Cloudflare secrets (not in [vars] to avoid conflicts)

@@ -18,17 +18,18 @@ export async function onRequestPost(context) {
 
     let prompt;
     
-    if (task === 'twitter_sentiment') {
-      // Search X/Twitter for stock sentiment
-      prompt = `Search X (Twitter) for recent posts about $${symbol} stock from the last 24-48 hours.
+    if (task === 'social_sentiment' || task === 'twitter_sentiment') {
+      // Analyze sentiment from credible financial sources
+      prompt = `Analyze the current market sentiment for ${symbol} stock from credible financial sources.
 
-Summarize:
-1. **Overall Sentiment** - Is the buzz bullish, bearish, or mixed?
-2. **Key Influencer Takes** - What are notable traders/analysts saying?
-3. **Trending Topics** - What specific news/events are people discussing?
-4. **Volume/Engagement** - Is there unusual activity or trending hashtags?
+Focus on:
+1. **Institutional Sentiment** - What are hedge funds, analysts, and institutional investors saying?
+2. **Seeking Alpha & Financial Media** - Key takes from credible financial commentators
+3. **StockTwits Pulse** - Summary of informed trader sentiment (not random noise)
+4. **Recent Analyst Actions** - Any upgrades, downgrades, or price target changes
+5. **Smart Money Signals** - Notable insider transactions or institutional moves
 
-Include specific quotes or paraphrased takes where notable. Flag any rumors or unverified claims.`;
+Cite specific sources where possible. Focus on actionable intelligence from credible voices in the financial community, not random social media chatter.`;
     } else if (task === 'summarize_filing') {
       // Summarize SEC filing
       prompt = `Analyze the SEC ${filingType} filing for ${symbol} (${filingUrl}).
