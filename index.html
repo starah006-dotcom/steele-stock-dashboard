@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Stock Dashboard - Steele Family</title>
-  <!-- Build: 2026-01-30-v6-final-fix -->
+  <!-- Build: 2026-01-31-v7-dividends-competitors-industries -->
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f0f23; color: #e0e0e0; min-height: 100vh; }
@@ -172,6 +172,22 @@
     .research-content .bullish { color: #10b981; }
     .research-content .bearish { color: #ef4444; }
 
+    /* Competitors Table */
+    .competitors-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    .competitors-table th { text-align: left; padding: 8px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #666; border-bottom: 1px solid #2a2a4a; }
+    .competitors-table td { padding: 10px 8px; border-bottom: 1px solid #2a2a4a22; font-size: 12px; }
+    .competitors-table tr:hover { background: #12122a; }
+    .competitors-table .symbol { font-weight: 600; color: #fff; }
+    .competitors-table .target-row { background: #10b98115; }
+    .competitors-table .target-row .symbol { color: #10b981; }
+    .competitors-table .up { color: #10b981; }
+    .competitors-table .down { color: #ef4444; }
+    .competitors-table .right { text-align: right; }
+    
+    /* Industry comparison button in tabs */
+    .tab.industry-btn { background: #10b98122; border-color: #10b981; color: #10b981; }
+    .tab.industry-btn:hover { background: #10b981; color: #fff; }
+
     @media (max-width: 900px) {
       .main { padding: 15px; }
       .tabs { padding: 10px 15px; }
@@ -323,6 +339,17 @@
         </div>
       </div>
 
+      <!-- Competitors Section -->
+      <div class="card" style="margin-top: 20px; border-color: #10b981;">
+        <h3>
+          <span><span class="icon">⚔️</span> Competitors</span>
+          <span id="competitor-sector" style="font-size:11px;color:#10b981;margin-left:auto;font-weight:normal;">--</span>
+        </h3>
+        <div id="competitors-content">
+          <div style="color:#666;text-align:center;padding:20px;">Loading competitors...</div>
+        </div>
+      </div>
+
       <!-- Deep Research Section -->
       <div class="card research-card" style="margin-top: 20px;">
         <h3>
@@ -333,6 +360,42 @@
         </h3>
         <div id="research-content" class="research-content">
           <div style="color:#666;text-align:center;padding:20px;">Click the button above to fetch real-time research from Perplexity AI</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Industry Comparison View -->
+    <div id="industry-view" style="display:none;">
+      <button class="back-btn" onclick="showPortfolio()">← Back to Portfolio</button>
+      <h2 style="color:#fff;margin-bottom:20px;display:flex;align-items:center;gap:12px;">
+        <span class="icon">🏭</span>
+        <span id="industry-title">Industry Comparison</span>
+      </h2>
+      <div class="holdings-card">
+        <h3>
+          <span id="industry-subtitle">Select an industry to compare</span>
+          <select id="industry-select" onchange="loadIndustryComparison(this.value)" style="margin-left:auto;padding:6px 12px;background:#12122a;border:1px solid #3a3a5a;border-radius:6px;color:#fff;font-size:12px;">
+            <option value="">-- Select Industry --</option>
+          </select>
+        </h3>
+        <div style="overflow-x: auto;">
+          <table class="holdings-table" id="industry-table">
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th class="right">Price</th>
+                <th class="right">Day Chg</th>
+                <th class="right">Mkt Cap</th>
+                <th class="right">P/E</th>
+                <th class="right">Yield</th>
+                <th class="right">YTD</th>
+                <th class="right">52W Range</th>
+              </tr>
+            </thead>
+            <tbody id="industry-body">
+              <tr><td colspan="8" style="text-align:center;color:#666;padding:40px;">Select an industry above to compare stocks</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -442,14 +505,97 @@
       const tabsEl = document.getElementById('tabs');
       tabsEl.innerHTML = Object.entries(PORTFOLIOS).map(([key, p]) =>
         `<div class="tab ${p.parent ? 'parent' : ''} ${key === currentMember ? 'active' : ''}" data-member="${key}">${p.icon} ${p.name}</div>`
-      ).join('');
+      ).join('') + `<div class="tab industry-btn" data-action="industry">🏭 Industry Compare</div>`;
 
-      tabsEl.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+      tabsEl.querySelectorAll('.tab[data-member]').forEach(t => t.addEventListener('click', () => {
         document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
         t.classList.add('active');
         currentMember = t.dataset.member;
         loadPortfolio();
       }));
+      
+      // Industry compare button
+      tabsEl.querySelector('.tab[data-action="industry"]').addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        tabsEl.querySelector('.tab[data-action="industry"]').classList.add('active');
+        showIndustryView();
+      });
+    }
+    
+    async function showIndustryView() {
+      document.getElementById('portfolio-view').style.display = 'none';
+      document.getElementById('stock-detail').classList.remove('active');
+      document.getElementById('industry-view').style.display = 'block';
+      
+      // Load industry options
+      try {
+        const res = await fetch('/api/competitors?list=industries');
+        const data = await res.json();
+        
+        if (data.industries) {
+          const select = document.getElementById('industry-select');
+          select.innerHTML = '<option value="">-- Select Industry --</option>' + 
+            data.industries.map(ind => `<option value="${ind}">${ind}</option>`).join('');
+        }
+      } catch (e) {
+        console.error('Failed to load industries:', e);
+      }
+    }
+    
+    async function loadIndustryComparison(industry) {
+      if (!industry) return;
+      
+      const tbody = document.getElementById('industry-body');
+      const subtitle = document.getElementById('industry-subtitle');
+      
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;"><span class="spinner" style="display:inline-block;width:16px;height:16px;border:2px solid #3b82f6;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;margin-right:10px;vertical-align:middle;"></span>Loading industry data...</td></tr>';
+      subtitle.textContent = industry;
+      
+      try {
+        const res = await fetch(`/api/competitors?industry=${encodeURIComponent(industry)}`);
+        const data = await res.json();
+        
+        if (data.error || !data.stocks?.length) {
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#ef4444;padding:30px;">Failed to load industry data</td></tr>';
+          return;
+        }
+        
+        // Sort by market cap descending
+        const sorted = data.stocks.sort((a, b) => (b.marketCap || 0) - (a.marketCap || 0));
+        
+        // Format helpers
+        const fmt = (n, dec = 2) => n != null && !isNaN(n) ? n.toFixed(dec) : '--';
+        const fmtMktCap = (n) => {
+          if (!n || isNaN(n)) return '--';
+          if (n >= 1e12) return '$' + (n/1e12).toFixed(1) + 'T';
+          if (n >= 1e9) return '$' + (n/1e9).toFixed(1) + 'B';
+          if (n >= 1e6) return '$' + (n/1e6).toFixed(0) + 'M';
+          return '$' + n.toLocaleString();
+        };
+        
+        tbody.innerHTML = sorted.map(s => {
+          const isUp = (s.changePercent || 0) >= 0;
+          const ytdUp = (s.ytdReturn || 0) >= 0;
+          const inPortfolio = PORTFOLIOS[currentMember]?.holdings?.some(h => h.symbol === s.symbol);
+          
+          return `<tr ${inPortfolio ? 'style="background:#10b98115;"' : ''}>
+            <td>
+              <div class="symbol" ${inPortfolio ? 'style="color:#10b981;"' : ''}>${s.symbol}${inPortfolio ? ' ★' : ''}</div>
+              <div class="company">${s.name || ''}</div>
+            </td>
+            <td class="right">${s.price ? '$' + fmt(s.price) : '--'}</td>
+            <td class="right ${isUp ? 'up' : 'down'}">${s.changePercent != null ? (isUp ? '+' : '') + fmt(s.changePercent) + '%' : '--'}</td>
+            <td class="right">${fmtMktCap(s.marketCap)}</td>
+            <td class="right">${fmt(s.pe, 1)}</td>
+            <td class="right">${s.dividendYield ? fmt(s.dividendYield) + '%' : '--'}</td>
+            <td class="right ${ytdUp ? 'up' : 'down'}">${s.ytdReturn != null ? (ytdUp ? '+' : '') + fmt(s.ytdReturn) + '%' : '--'}</td>
+            <td class="right hide-mobile" style="font-size:11px;">$${fmt(s.week52Low, 0)} - $${fmt(s.week52High, 0)}</td>
+          </tr>`;
+        }).join('');
+        
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#ef4444;padding:30px;">Error: ${err.message}</td></tr>`;
+      }
     }
 
     // Sorting
@@ -561,6 +707,7 @@
     function showPortfolio() {
       document.getElementById('portfolio-view').style.display = 'block';
       document.getElementById('stock-detail').classList.remove('active');
+      document.getElementById('industry-view').style.display = 'none';
     }
 
     async function showStockDetail(symbol) {
@@ -719,6 +866,81 @@
       document.getElementById('research-content').innerHTML = '<div style="color:#666;text-align:center;padding:20px;">Click the button above to fetch real-time research from Perplexity AI</div>';
       document.getElementById('research-btn').disabled = false;
       document.getElementById('research-btn').classList.remove('loading');
+      
+      // Load competitors
+      loadCompetitors(symbol);
+    }
+
+    async function loadCompetitors(symbol) {
+      const content = document.getElementById('competitors-content');
+      const sectorEl = document.getElementById('competitor-sector');
+      
+      content.innerHTML = '<div style="color:#666;text-align:center;padding:15px;"><span class="spinner" style="display:inline-block;width:14px;height:14px;border:2px solid #3b82f6;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;margin-right:8px;vertical-align:middle;"></span>Loading competitors...</div>';
+      
+      try {
+        const res = await fetch(`/api/competitors?symbol=${symbol}`);
+        const data = await res.json();
+        
+        if (data.error || !data.competitors?.length) {
+          content.innerHTML = '<div style="color:#666;text-align:center;padding:15px;">No competitor data available for this stock</div>';
+          sectorEl.textContent = '--';
+          return;
+        }
+        
+        sectorEl.textContent = data.sector || '--';
+        
+        // Format helper
+        const fmt = (n, decimals = 2) => n != null && !isNaN(n) ? n.toFixed(decimals) : '--';
+        const fmtMktCap = (n) => {
+          if (!n || isNaN(n)) return '--';
+          if (n >= 1e12) return '$' + (n/1e12).toFixed(1) + 'T';
+          if (n >= 1e9) return '$' + (n/1e9).toFixed(1) + 'B';
+          if (n >= 1e6) return '$' + (n/1e6).toFixed(0) + 'M';
+          return '$' + n.toLocaleString();
+        };
+        
+        // Build comparison table
+        const allStocks = [data.target, ...data.competitors].filter(Boolean);
+        
+        let html = `<table class="competitors-table">
+          <thead>
+            <tr>
+              <th>Symbol</th>
+              <th class="right">Price</th>
+              <th class="right">Day</th>
+              <th class="right">Mkt Cap</th>
+              <th class="right">P/E</th>
+              <th class="right">Yield</th>
+              <th class="right">YTD</th>
+            </tr>
+          </thead>
+          <tbody>`;
+        
+        allStocks.forEach(s => {
+          const isUp = (s.changePercent || 0) >= 0;
+          const ytdUp = (s.ytdReturn || 0) >= 0;
+          const isTarget = s.isTarget;
+          
+          html += `<tr class="${isTarget ? 'target-row' : ''}">
+            <td>
+              <div class="symbol">${s.symbol}${isTarget ? ' ★' : ''}</div>
+              <div style="font-size:10px;color:#666;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.name || ''}</div>
+            </td>
+            <td class="right">$${fmt(s.price)}</td>
+            <td class="right ${isUp ? 'up' : 'down'}">${isUp ? '+' : ''}${fmt(s.changePercent)}%</td>
+            <td class="right">${fmtMktCap(s.marketCap)}</td>
+            <td class="right">${fmt(s.pe, 1)}</td>
+            <td class="right">${s.dividendYield ? fmt(s.dividendYield) + '%' : '--'}</td>
+            <td class="right ${ytdUp ? 'up' : 'down'}">${s.ytdReturn != null ? (ytdUp ? '+' : '') + fmt(s.ytdReturn) + '%' : '--'}</td>
+          </tr>`;
+        });
+        
+        html += '</tbody></table>';
+        content.innerHTML = html;
+        
+      } catch (err) {
+        content.innerHTML = '<div style="color:#ef4444;text-align:center;padding:15px;">Error loading competitors: ' + err.message + '</div>';
+      }
     }
 
     async function loadDeepResearch() {
