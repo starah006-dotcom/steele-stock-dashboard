@@ -176,7 +176,7 @@ export async function onRequestGet(context) {
           return { symbol, error: err.message };
         }
       })
-    ];
+    ]);
 
     // Merge dividend calendar data into stock results
     const stocksMap = {};
